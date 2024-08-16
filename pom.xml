@@ -40,10 +40,22 @@
       <version>6.4.2.Final</version>
     </dependency>
 
+<!--    <dependency>-->
+<!--      <groupId>jakarta.xml.bind</groupId>-->
+<!--      <artifactId>jakarta.xml.bind-api</artifactId>-->
+<!--      <version>2.3.3</version>-->
+<!--    </dependency>-->
+<!--    &lt;!&ndash; JAXB Runtime (구현체) &ndash;&gt;-->
+<!--    <dependency>-->
+<!--      <groupId>org.glassfish.jaxb</groupId>-->
+<!--      <artifactId>jaxb-runtime</artifactId>-->
+<!--      <version>2.3.3</version>-->
+<!--    </dependency>-->
+<!--&lt;!&ndash;    구현체가 있어야&ndash;&gt;-->
     <dependency>
-      <groupId>jakarta.xml.bind</groupId>
-      <artifactId>jakarta.xml.bind-api</artifactId>
-      <version>2.3.3</version>
+      <groupId>javax.xml.bind</groupId>
+      <artifactId>jaxb-api</artifactId>
+      <version>2.3.1</version>
     </dependency>
 
     <!-- H2 데이터베이스 -->
