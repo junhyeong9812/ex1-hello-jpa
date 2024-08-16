@@ -45,9 +45,9 @@ public class JpaMain {
 
         //맴버 단건 조회
             //데이터 수정을 한다면? 엔티티를 자바 컬렉션처럼 이해하면 편하다.
-            Member findMember = entityManager.find(Member.class, 1L);
-            System.out.println("findMember.getId = " + findMember.getId());
-            System.out.println("findMember.getName() = " + findMember.getName());
+//            Member findMember = entityManager.find(Member.class, 1L);
+//            System.out.println("findMember.getId = " + findMember.getId());
+//            System.out.println("findMember.getName() = " + findMember.getName());
 
         //맴버 삭제
 //            entityManager.remove(findMember);
@@ -84,17 +84,17 @@ public class JpaMain {
 //        위처럼 SQL이 나가는데 select하고 필드를 전부 나열해놨다.
 //            맴버 엔티티를 선택하고 SQL을 알면 JPQL을 금방 작성하고
             //예시로 페이징을 하고 싶을 때
-            List<Member> resultList =
-                    entityManager.
-                            createQuery
-                                    ("select m from Member as m", Member.class)
-                            .setFirstResult(1)//1부터 10개를 가져오라는 코드로
-                            .setMaxResults(10)//페이지 네이션을 쉽게 할 수 있다.
-                            .getResultList();
-            //이렇게 쿼리를 사용해서 쿼리문을 통해 데이터를 가져오는데
-            for(Member member:resultList){
-                System.out.println("member.getName() = " + member.getName());
-            }
+//            List<Member> resultList =
+//                    entityManager.
+//                            createQuery
+//                                    ("select m from Member as m", Member.class)
+//                            .setFirstResult(1)//1부터 10개를 가져오라는 코드로
+//                            .setMaxResults(10)//페이지 네이션을 쉽게 할 수 있다.
+//                            .getResultList();
+//            //이렇게 쿼리를 사용해서 쿼리문을 통해 데이터를 가져오는데
+//            for(Member member:resultList){
+//                System.out.println("member.getName() = " + member.getName());
+//            }
 //            select
 //            m1_0.id,
 //                    m1_0.name
@@ -116,7 +116,74 @@ public class JpaMain {
 //                    실제 RDB를 대상으로 쿼리를 만들면 DB에 종속이 되기 때문에 그게 아니라 엔티티 객체를 대상으로 쿼리를 할 수 있는 JPQL이 제공되는 것
 
             //트랜잭션을 커밋해야 데이터가 저장된다.
-        transaction.commit();
+
+            //member는 비영속 상태
+//            Member member=new Member();
+//            member.setId(14L);
+//            member.setName("HelloJPA");
+//
+//            //member는 영속 상태
+//            System.out.println("==BEFORE==");
+//            entityManager.persist(member);
+//            System.out.println("==AFTER==");
+            //이때는 DB에 저장되지 않는다.
+            //단순히 위 상황에서는 쿼리가 안들어간다.
+
+            //같은 컨텍스트에서 조회를 해보면
+//            Member findMember = entityManager.find(Member.class, 12L);
+//            System.out.println("findMember = " + findMember.getId());
+//            System.out.println("findMember.getName() = " + findMember.getName());
+//            //조회용 sql이 나가는 지가 중요하다.
+//
+//            //이후
+//            Member findMember1 = entityManager.find(Member.class, 12L);
+//            System.out.println("findMember1 = " + findMember1.getId());
+//            Member findMember2 = entityManager.find(Member.class, 12L);
+//            System.out.println("findMember2 = " + findMember2.getId());
+//            System.out.println("(findMember2==findMember1) = " + (findMember2==findMember1));
+
+            //쓰기 지연 기능 확인
+//            Member member1=new Member(150L,"A");
+//            Member member2=new Member(160L,"B");
+//            entityManager.persist(member1);
+//            entityManager.persist(member2);
+            //이 순간 DB에 저장되는 것이 아니라 영속성 컨텍스트에 쓰기 지연 SQL저장소에
+            //저장되는 것
+            //그리고 아래 commit을 하는 순간 쿼리가 날라가기 때문에
+            System.out.println("-----------------------------");
+            //위 선을 통해 전인 지 후인지 확인
+            //이렇게 하면 데이터베이스에 이 쿼리문을 한번에 보낼 수 있는데
+            //jdbc패치라 이야기 하는데 하이버네이트같은 경우
+            //batchSize라는 기능을 통해 이 사이즈만큼 모아서 데이터베이스에 한번에 쿼리를
+            //보내고 커밋을 해버린다.
+            //쉽게 말해서 버퍼링 같은 것
+            //데이터를 보았다가 DB에 한번에 보내는 것이다.
+            //중요한 것은 이런 이점을 활용할 수 있다. 그래서 JPA를 써서 성능적인 면에서
+            //오히려 옵션을 통해 성능을 먹고 들어갈 수 있다.
+            //마이바티스나 이런 것은 커밋직전에 한번에 넣는 게 힘들다.
+
+            //변경 감지
+            //더치체크
+            Member member = entityManager.find(Member.class, 150L);
+            System.out.println("----------------------");
+            member.setName("AA");
+            //JPA는 자바 컬랙션처럼 다루기 위한 것인데
+            //자바도 값을 꺼내서 변경하면 그대로 변경이 이뤄진 상태가 된다.
+            //그렇기 때문에 수정할 때 퍼시스트로 하는게 애초에 객체 지향 코드와 맞지 않는다.
+//            JPA는 변경 감지를 통해 엔티티를 변경할 수 있도록 기능이 제공이 된다.
+
+            //가장 중요한 점은 엔티티를 변경할 때는 변경감지를 활용하고 persist나 머지를
+            //사용하지 않는게 중요하다.
+
+            //예제로
+            if(member.getName().equals("AA")){
+                entityManager.persist(member);
+            }
+            //이렇게 코드를 작성한다고 했을 때 내 의도는 맴버가 변경된 경우만
+            //업데이트 쿼리를 날릴꺼야 그게 아닌 경우 안날릴꺼야
+            //이때 이런 조건을 넣지 않아도 쿼리가 날라간다.
+
+            transaction.commit();
         }catch (Exception e){
             transaction.rollback();
         }finally {
