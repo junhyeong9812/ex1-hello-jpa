@@ -164,9 +164,9 @@ public class JpaMain {
 
             //변경 감지
             //더치체크
-            Member member = entityManager.find(Member.class, 150L);
-            System.out.println("----------------------");
-            member.setName("AA");
+//            Member member = entityManager.find(Member.class, 150L);
+//            System.out.println("----------------------");
+//            member.setName("AA");
             //JPA는 자바 컬랙션처럼 다루기 위한 것인데
             //자바도 값을 꺼내서 변경하면 그대로 변경이 이뤄진 상태가 된다.
             //그렇기 때문에 수정할 때 퍼시스트로 하는게 애초에 객체 지향 코드와 맞지 않는다.
@@ -176,12 +176,57 @@ public class JpaMain {
             //사용하지 않는게 중요하다.
 
             //예제로
-            if(member.getName().equals("AA")){
-                entityManager.persist(member);
-            }
+//            if(member.getName().equals("AA")){
+//                entityManager.persist(member);
+//            }
             //이렇게 코드를 작성한다고 했을 때 내 의도는 맴버가 변경된 경우만
             //업데이트 쿼리를 날릴꺼야 그게 아닌 경우 안날릴꺼야
             //이때 이런 조건을 넣지 않아도 쿼리가 날라간다.
+
+            //Flush활용
+//            Member member = new Member(200L,"member200");
+//            entityManager.persist(member);
+//            entityManager.flush();
+//            //이렇게 flush를 통해 commit 이전에 미리 쿼리를 확인할 수 있다.
+//            //그러면 flush매커니즘이 즉시 일어난다.
+//            System.out.println("-------commit-------------");
+//          플러시는 영속성 컨텍스트를 비우지 않는다.
+//            영속성 컨텍스트의 변경내용을 데이터베이스에 동기화한다.
+//            트랜잭션이라는 작업 단위가 중요-> 커밋 직전에만 동기화하면 된다.
+//            이 플러시가 동작할 수 있는 이유는 트랜잭션이라는 작업 단위가 존재하기 때문이다.
+//            JPA에서 업데이트를 날리고 하는게 가장 중요한게 커밋 직전에만 쿼리를 날리면 되기
+//                    때문에 이런 메커니즘이 중요
+//                    동시성 같은 것을 전 부 트랜잭션에 위임해서 사용
+
+            //준영속 상태
+//            영속->준영속
+            //영소게서 준영속으로 갈 수 있는데 이때 em.persist를 하면 그 데이터는
+            //영속 상태가 되며 em.find를 통해 데이터를 가져올 경우에도 이 데이터가
+            //영속성 컨텍스트에 존재하지 않는다면 DB에서 그 데이터를 조회해서 1차캐시에 올린다.
+
+            //준영속 상태란 영속 상태의 엔티티가 영속성 컨텍스트에서 분리된 상태이다.
+            //한마디로 1차 캐시에서 없애는 것
+            //이 상태면 더티체크가 안된다.
+            //만약 데이터를 준영속 상태로 변경하고 싶다면
+//            entityManager.detach("entity명");
+//            >>특정 엔티티만 준영속 상태로 전환
+//              entityManager.clear();
+//              >>영속성 컨텍스트를 완전히 초기화
+//                entityManager.close();
+//                >>영속성 컨텍스트를 종료
+            //위와 같은 케이스 일 경우 준영속 상태로 데이터의 상태가 변경된다.
+            //예시
+            Member member = entityManager.find(Member.class, 150L);
+            System.out.println("----------------------");
+            member.setName("AAA");
+            //150을 조회해서 이름을 변경하는데
+            //민약 여기서 member가 영속 상태이지만
+            entityManager.detach(member);
+            //이렇게 member데이터를 변경하고 준영속 상태로 전환하게 된다면
+            //셀렉트 쿼리만 나오는 것을 볼 수 있다.
+            //결국 영속에서 관리하지 않아서 더치체크가 안되는 것을 알 수 있다.
+            //직접 쓸 일은 없지만 웹에서 복잡해지면
+            //왜 쓰이는 지 알 수 있다.
 
             transaction.commit();
         }catch (Exception e){
