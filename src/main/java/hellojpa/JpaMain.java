@@ -211,9 +211,14 @@ public class JpaMain {
 //            entityManager.detach("entity명");
 //            >>특정 엔티티만 준영속 상태로 전환
 //              entityManager.clear();
-//              >>영속성 컨텍스트를 완전히 초기화
+//              >>영속성 컨텍스트를 완전히 초기화/내부를 전부 초기화시키는 것
+//            Member member = entityManager.find(Member.class, 150L);
+            //다시 셀렉트해서 셀렉트가 두번 일어난다.
+            //1차캐시와 관계없이 테스트 케이스를 작성하거나 할 때 눈으로 확인할 때 clear를 쓰면
+            //유용하다.
 //                entityManager.close();
 //                >>영속성 컨텍스트를 종료
+            //이렇게 닫아버리면 더이상 관리가 안되기 때문에 데이터가 업데이트 되지 않는다.
             //위와 같은 케이스 일 경우 준영속 상태로 데이터의 상태가 변경된다.
             //예시
             Member member = entityManager.find(Member.class, 150L);
