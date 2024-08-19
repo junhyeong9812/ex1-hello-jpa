@@ -1,9 +1,6 @@
 package hellojpa;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.EntityTransaction;
-import jakarta.persistence.Persistence;
+import jakarta.persistence.*;
 
 import java.util.List;
 
@@ -221,17 +218,24 @@ public class JpaMain {
             //이렇게 닫아버리면 더이상 관리가 안되기 때문에 데이터가 업데이트 되지 않는다.
             //위와 같은 케이스 일 경우 준영속 상태로 데이터의 상태가 변경된다.
             //예시
-            Member member = entityManager.find(Member.class, 150L);
+//            Member member = entityManager.find(Member.class, 150L);
             System.out.println("----------------------");
-            member.setName("AAA");
+//            member.setName("AAA");
             //150을 조회해서 이름을 변경하는데
             //민약 여기서 member가 영속 상태이지만
-            entityManager.detach(member);
+//            entityManager.detach(member);
             //이렇게 member데이터를 변경하고 준영속 상태로 전환하게 된다면
             //셀렉트 쿼리만 나오는 것을 볼 수 있다.
             //결국 영속에서 관리하지 않아서 더치체크가 안되는 것을 알 수 있다.
             //직접 쓸 일은 없지만 웹에서 복잡해지면
             //왜 쓰이는 지 알 수 있다.
+
+//            EnumType.ORDINAL일 경우
+            Member member=new Member();
+            member.setId(1L);
+            member.setUsername("AA");
+            member.setRoleType(RoleType.USER);
+            entityManager.persist(member);
 
             transaction.commit();
         }catch (Exception e){
