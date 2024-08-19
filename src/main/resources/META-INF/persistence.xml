@@ -39,6 +39,48 @@
             -->
 <!--            <property name="hibernate.hbm2ddl.auto" value="create"/>-->
             <property name="hibernate.hbm2ddl.auto" value="update"/>
+<!--            스키마 자동 생성에 대한 속성에는
+                create : 기존 테이블을 삭제 후 다시 생성 (Drop+create)
+                create-drop :test케이스같은 것들을 확인 후 테이블을 날릴 때
+                             create와 같으나 종료시점에 테이블 Drop
+                update :변경된 부분만 반영(운영DB에서는 사용하면 안된다.)
+                        >>변경된 부분은 alter테이블을 주로 사용됨 지우는 것은 안된다.
+                        >>추가하는 것만 가능
+                validate : 엔티티와 테이블이 정상 매핑되었는지만 확인
+                           컬럼 추가 시 컬럼에 그 데이터가 없다고 에러가 나오게 된다.
+                           정상 매핑 확인 시 사용
+                none : 사용하지 않음
+                       사실 none은 없다>>그냥 관례상 none으로 사용 매칭되지 않는 값을
+                       넣어도 사실 동작함
+                -->
+<!--            주의점:
+                운영 장비에는 create/create-drop/update를 사용하면 안된다.
+                개발 초기 단계는 create/update
+                테스트 서버는 update/validate
+                스테이징과 운영서버는 validate 또는 none
+                테스트 서버나 개발서버도 가급적 안쓰는 게 좋다.
+                그냥 벨리데이트나 none으로 사용하지 않는 게 좋다.
+                왜냐하면 개발 서버 같은 경우 업데이트가 편리하긴한데
+                결국 운영 같은 경우 몇천만건 있는 상태에서 alter가 잘못되거나 그러면
+                시스템 다운이 될 수도 있다.
+                그래서 테스트나 개발서버는 그냥 본인이 직접 alter를 통해 직접 스크립트를
+                짜서 적용하고 이후 검수 후 DB에 적용하는 것이 좋다.
+                스크립트를 만들어주기 때문에 운영 서버에 반영할 때도 jpa스크립트를 다듬어서
+                DB에 직접 쿼리로 만든다.
+                그리고 alter 쿼리가 update설정을 통해 잘못 날라가면 그 테이블이 락이 걸려서
+                그 테이블 조회가 안되어 서비스가 중단되는 사태도 일어난다.
+                가장 중요한 것은 웹 어플리케이션 계정은 얼터나 드랍 자체를 못하도록
+                계정 분할이 필요하다.
+                이다음 DDL 생성 기능
+                DDL 생성 기능 :
+                 1.제약 조건 추가 : 회원이름 필 수 ,10자 초과x
+                 @Column(nullable= false,length=10)
+                 유니크 제약 조건 추가
+                 @Table(uniqueConstraints={@UniqueConstraint(name="NAME_AGE_UNIQUE",
+                                          columnNames={NAME","AGE"})})
+                 DDL생성 기능은 DDL을 자동 생성할 때만 사용되고 JPA실행 로직에는 영향을
+                 주지 않는다.
+                -->
         </properties>
     </persistence-unit>
 
