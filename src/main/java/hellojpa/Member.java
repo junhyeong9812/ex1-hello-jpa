@@ -10,11 +10,84 @@ import java.util.Date;
 @Entity(name="Member") //엔티티가 존재해야 jpa가 로딩할 때 jpa를 사용하는 엔티티라고 인식 후 관리하게 된다.
 //name속성은 디폴트로 위와 같이 현재 클래스명과 같다.
 //@Table(name = "user")//위와 같이 DB테이블명을 명시해서 매핑해줄 수 있다.
+//--시퀀스 전략
+@SequenceGenerator(
+        name = "MEMBER_SEQ_GENERATOR",
+        sequenceName = "MEMBER_SEQ", //매핑할 데이터베이스 시퀀스 이름
+        initialValue = 1, allocationSize = 1)
+//allocationSize의 디폴트 값은 50
+//--테이블 전략
+//@TableGenerator(
+//        name = "MEMBER_SEQ_GENERATOR",
+//        table = "MY_SEQUENCES",
+//        pkColumnValue = "MEMBER_SEQ", allocationSize = 1)
+//테이블 제너레이터에서 중요한 속성은 InitialValue>>초기값,마지막으로 생성된 값이 기준
+//allocationSize>>시퀀스 한번 호출에 증가하는 수 (성능 최적화에 사용) 이 두가지가 중요
 public class Member {
 
 
     @Id//Id 어노테이션을 통해 Pk가 어떤 값인 지 알려준다.
+    //기본키 매핑
+    @GeneratedValue(
+            //GeneratedValue 전략
+//            1.strategy =GenerationType.AUTO
+            //DB방언에 맞춰서 자동으로 생성해준다.
+//        strategy = GenerationType.AUTO
+
+//                IDENTITY : 기본 키 생성을 데이터베이스에 위임(MySQL/오토인크리먼트)
+//            strategy = GenerationType.IDENTITY
+            //SEQUENCE :데이터베이스 시퀸스는 유일한 값을 순서대로 생성하는 데이터베이스 오브젝트
+            //이 오브젝트를 활용
+            strategy = GenerationType.SEQUENCE
+//            select
+//            next value for Member_SEQ
+//            위처럼 시퀸스를 찾는 것을 볼 수 있다.
+            //하지만 시퀸스가 없어서 Integer를 사용해야 된다.
+            //하지만 인티저는 10억을 넘어가면 다시 0으로 돌아오기 때문에
+            //long으로 써야한다.
+            //이제는 성능이 너무 좋아져서 10억 이상 데이터 타입을 바꾸기 힘들기 때문에
+            //그냥 Long을 최대한 활용하는 게 좋다.
+            //또한 별도의 @SequenceGenerator를 통해 시퀀스를 지정하지 않으면
+            //하이버네이트 자체적으로 시퀀스를 만들어서 사용한다.
+            //SequenceGen사용
+            ,generator = "MEMBER_SEQ_GENERATOR"
+            //위에서 생성한 시퀀스 이름을 저네레이터 속성값으로 넣는다.
+//            strategy = GenerationType.TABLE,
+//            generator = "MEMBER_SEQ_GENERATOR"
+    )
     private long id;
+
+    //기본키 매핑 어노테이션
+    //만약 id를 직접 할당한다면
+    //String일 경우
+//    private String id;
+    //1.@Id : id값을 지정(관계형DB는 오라클의 경우 시퀸스를 많이 사용)
+    //2.@GeneratedValue : 값을 자동할당해주는 것
+
+    //기본키 매핑 방법
+//    1.직접할당 :@ID만 사용
+//    2.자동생성 @GeneratedValue
+//    -IDENTITY:데이터베이스에 위임,mySQL
+//    -SEQUENCE: 데이터베이스 시퀸스 오브젝트 사용
+//            @SequenceGenerator() 필요
+//    -TABLE:키 생성용 테이블 사용, 모든 DB에서 사용
+//            @TableGenerator() 필요
+//    -AUTO : 방언에 따라 자동 지정, 기본값
+
+    //권장하는 식별자 전략
+//    1. 기본키 제약 조건 : null이면 안된다. 유일한 값, 변하면 안된다.
+//    2. 미래까지 이 조건을 만족하는 자연키는 찾기 어렵다. 대리키(대체키)를 사용하자.
+//        (자연키란 주문번호나 전화번호같은 것들을 자연키라 한다.)
+//        (대체키는 비즈니스와 관련 없는 값을 대체키로 사용해야 된다.)
+//        (pk를 주민번호로 사용하면 pk만 아니라 그 회원을 가져다 사용한 나머지 테이블도
+//        (다 변경해야 되는 불상사가 일어난다(개인정보둥 민감한 정보도 최대한 PK로 사용X))
+//        (UUID같은 대체키를 사용하는 게 좋다.)
+//    3. 예시로 주민등록번호도 기본키로 적절하지 않다.
+//    4. 권장:Long형+대체키+키 생성전략 사용
+
+
+
+
 //    @Column(name = "userName")//또한 이렇게 컬럼 어노테이션을 통해 컬럼명도 매핑시킬 수 있다.
     @Column(name="name",unique = true
             //nuique는 잘 사용되지 않는다 왜냐면 제약 조건이름이 렌덤값으로 나온다.
@@ -170,6 +243,13 @@ public long getId() {
     public void setId(long id) {
         this.id = id;
     }
+//public String getId() {
+//    return id;
+//}
+//
+//    public void setId(String id) {
+//        this.id = id;
+//    }
 
     public String getUsername() {
         return username;

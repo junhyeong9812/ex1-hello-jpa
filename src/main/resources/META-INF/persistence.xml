@@ -37,8 +37,8 @@
                 'create' 옵션은 애플리케이션 시작 시 기존 테이블을 모두 삭제한 후 새로 생성합니다.
                 주의: 이 설정은 데이터베이스의 모든 데이터를 삭제하므로, 개발이나 테스트 환경에서만 사용해야 합니다.
             -->
-<!--            <property name="hibernate.hbm2ddl.auto" value="create"/>-->
-            <property name="hibernate.hbm2ddl.auto" value="update"/>
+            <property name="hibernate.hbm2ddl.auto" value="create"/>
+<!--            <property name="hibernate.hbm2ddl.auto" value="update"/>-->
 <!--            스키마 자동 생성에 대한 속성에는
                 create : 기존 테이블을 삭제 후 다시 생성 (Drop+create)
                 create-drop :test케이스같은 것들을 확인 후 테이블을 날릴 때

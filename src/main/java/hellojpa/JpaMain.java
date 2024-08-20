@@ -231,12 +231,54 @@ public class JpaMain {
             //왜 쓰이는 지 알 수 있다.
 
 //            EnumType.ORDINAL일 경우
-            Member member=new Member();
-            member.setId(1L);
-            member.setUsername("AA");
-            member.setRoleType(RoleType.USER);
-            entityManager.persist(member);
+//            Member member=new Member();
+//            member.setId(1L);
+//            member.setUsername("AA");
+//            member.setRoleType(RoleType.USER);
+//            entityManager.persist(member);
 
+            //기본키 매핑
+//            Member member=new Member();
+////            member.setId("ID_A");
+////            GenerationType.AUTO를 사용한다면 setId는 하면 안된다.
+//            member.setUsername("AA");
+//            member.setRoleType(RoleType.USER);
+//
+//            System.out.println(" ==============w===== ");
+//            entityManager.persist(member);
+//            //PK값만 얻어서 영속성 컨텍스트에 넣어두고 이후 커밋하는 시점에 인서트가 되는 것
+//            //시퀀스 방식은 버퍼링이 가능하다.
+//            //네트워크를
+//            System.out.println("member.getId() = " + member.getId());
+//            System.out.println("====================");
+
+            //allocationSize확인
+            Member member1 =new Member();
+            member1.setUsername("A");
+            Member member2 =new Member();
+            member2.setUsername("B");
+            Member member3 =new Member();
+            member3.setUsername("C");
+            System.out.println("================");
+            //Select가 두번 호출되는데 이떄
+            //DB SEQ=1이되고 다음 호출에서 50개씩 써야되는데 처음 호출된게 0이 아닌 1이기 때문에
+            //다시 호출해보는 것
+            //DB SEQ=51이 된다.
+            //다시 호출해서 50개가 맞으면 
+//            결국 아래와 같이 되는 것
+            //DB SEQ=1 |    1
+            //DB SEQ=51|    2
+            //DB SEQ=51|    3
+            //결국 이렇게 동작하게 되는 것
+            entityManager.persist(member1);//이 시점에 최적화 51개로 맞추고 이후에 더미로호출
+            entityManager.persist(member2);//MEM
+            entityManager.persist(member3);//MEM
+            //이후 두개는 메모리에서 데이터를 호출하는 것
+
+            System.out.println("member1 = " + member1.getId());
+            System.out.println("member2 = " + member2.getId());
+            System.out.println("member3 = " + member3.getId());
+            System.out.println("================");
             transaction.commit();
         }catch (Exception e){
             transaction.rollback();
