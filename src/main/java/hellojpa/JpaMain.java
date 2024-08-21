@@ -3,18 +3,13 @@ package hellojpa;
 import jakarta.persistence.*;
 
 import java.util.List;
-
+//연관관계 매핑
 public class JpaMain {
     //psvm을 통해 바로 생성 가능
     public static void main(String[] args) {
         //동작 확인
         EntityManagerFactory entityManagerFactory =
                 Persistence.createEntityManagerFactory("hello");
-        //unitName>><persistence-unit name="hello"> 여기 name을 생성
-        //이렇게 엔티티매니져 팩토리를 반환하게 된다.
-        //그리고 entityManagerFactory는 App로딩 시점에 딱 하나만 만들어야한다.
-        //그리고 실제 DB에 저장하거나 트랜잭션 단위에 대해서 DB커넥션을 얻어서 쿼리를 날릴 때
-        //엔티티 메니져를 꼭 만들어줘야한다.
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         //이후 엔티티 매니져를 가져와서 이걸 통해 쿼리 생성 가능
 
@@ -24,6 +19,76 @@ public class JpaMain {
         transaction.begin();
 
         try {
+//            Hibernate:
+//            create table Member (
+//                    TEAM_ID bigint,
+//                    id bigint not null,
+//                    USERNAME varchar(255),
+//                    primary key (id)
+//    )
+//            Hibernate:
+//            create table Team (
+//                    TEAM_ID bigint not null,
+//                    name varchar(255),
+//                    primary key (TEAM_ID)
+//    )
+            //만약 위와 같이 RDB에 맞춰 모델링을 하게 된다면
+            Team team =new Team();
+            team.setName("TeamA");
+            entityManager.persist(team);
+            //psersist하면 id에 값이 들어가기 때문에 id값이 세팅된다.
+
+            Member member=new Member();
+            member.setName("member1");
+            member.setTeamId(team.getId());
+            //영속상태이기 때문에 id값이 존재
+            entityManager.persist(member);
+            //이처럼 객체 지향적이지 않고 id를 통해 외례키 방식으로 매핑된다.
+
+            Member findMember = entityManager.find(Member.class, member.getId());
+            Long findTeamId = findMember.getTeamId();
+            Team findTeam = entityManager.find(Team.class, findTeamId);
+            //이처럼 계속 DB를 통해 흘러가서 직접 꺼내야 된다.
+//            이렇게 구성하게 되면 객체지향스럽지 못하다.
+            //가장 주용한 것은 이렇게 객체를 테이블에 맞추어 데이터 중심으로 모델링하면
+            //협력!!관계를 만들 수 없다.
+
+            transaction.commit();
+        }catch (Exception e){
+            transaction.rollback();
+        }finally {
+            //메니져와 팩토리 닫기
+            entityManager.close();
+            //엔티티메니져가 내부적으로 데이터베이스 커넥션을 물고 동작하기 때문에 성능을 위해서는
+            //호출 후 닫아줘야 한다.
+        }
+        entityManagerFactory.close();
+
+
+    }
+}
+        
+//엔티티 매핑
+//public class JpaMain {
+//    //psvm을 통해 바로 생성 가능
+//    public static void main(String[] args) {
+//        //동작 확인
+//        EntityManagerFactory entityManagerFactory =
+//                Persistence.createEntityManagerFactory("hello");
+//        //unitName>><persistence-unit name="hello"> 여기 name을 생성
+//        //이렇게 엔티티매니져 팩토리를 반환하게 된다.
+//        //그리고 entityManagerFactory는 App로딩 시점에 딱 하나만 만들어야한다.
+//        //그리고 실제 DB에 저장하거나 트랜잭션 단위에 대해서 DB커넥션을 얻어서 쿼리를 날릴 때
+//        //엔티티 메니져를 꼭 만들어줘야한다.
+//        EntityManager entityManager = entityManagerFactory.createEntityManager();
+//        //이후 엔티티 매니져를 가져와서 이걸 통해 쿼리 생성 가능
+//
+//        //DB커넥션을 생성해서 트랜잭션을 호출해야 된다.
+//        EntityTransaction transaction = entityManager.getTransaction();
+//        //트랜잭션 시작
+//        transaction.begin();
+//
+//        try {
             //맴버 생성
 //        Member member =new Member();
 //        //맴버 ID가 없으면 저장 안됨
@@ -147,7 +212,7 @@ public class JpaMain {
             //이 순간 DB에 저장되는 것이 아니라 영속성 컨텍스트에 쓰기 지연 SQL저장소에
             //저장되는 것
             //그리고 아래 commit을 하는 순간 쿼리가 날라가기 때문에
-            System.out.println("-----------------------------");
+//            System.out.println("-----------------------------");
             //위 선을 통해 전인 지 후인지 확인
             //이렇게 하면 데이터베이스에 이 쿼리문을 한번에 보낼 수 있는데
             //jdbc패치라 이야기 하는데 하이버네이트같은 경우
@@ -219,7 +284,7 @@ public class JpaMain {
             //위와 같은 케이스 일 경우 준영속 상태로 데이터의 상태가 변경된다.
             //예시
 //            Member member = entityManager.find(Member.class, 150L);
-            System.out.println("----------------------");
+//            System.out.println("----------------------");
 //            member.setName("AAA");
             //150을 조회해서 이름을 변경하는데
             //민약 여기서 member가 영속 상태이지만
@@ -253,43 +318,43 @@ public class JpaMain {
 //            System.out.println("====================");
 
             //allocationSize확인
-            Member member1 =new Member();
-            member1.setUsername("A");
-            Member member2 =new Member();
-            member2.setUsername("B");
-            Member member3 =new Member();
-            member3.setUsername("C");
-            System.out.println("================");
-            //Select가 두번 호출되는데 이떄
-            //DB SEQ=1이되고 다음 호출에서 50개씩 써야되는데 처음 호출된게 0이 아닌 1이기 때문에
-            //다시 호출해보는 것
-            //DB SEQ=51이 된다.
-            //다시 호출해서 50개가 맞으면 
-//            결국 아래와 같이 되는 것
-            //DB SEQ=1 |    1
-            //DB SEQ=51|    2
-            //DB SEQ=51|    3
-            //결국 이렇게 동작하게 되는 것
-            entityManager.persist(member1);//이 시점에 최적화 51개로 맞추고 이후에 더미로호출
-            entityManager.persist(member2);//MEM
-            entityManager.persist(member3);//MEM
-            //이후 두개는 메모리에서 데이터를 호출하는 것
-
-            System.out.println("member1 = " + member1.getId());
-            System.out.println("member2 = " + member2.getId());
-            System.out.println("member3 = " + member3.getId());
-            System.out.println("================");
-            transaction.commit();
-        }catch (Exception e){
-            transaction.rollback();
-        }finally {
-            //메니져와 팩토리 닫기
-            entityManager.close();
-            //엔티티메니져가 내부적으로 데이터베이스 커넥션을 물고 동작하기 때문에 성능을 위해서는
-            //호출 후 닫아줘야 한다.
-        }
-        entityManagerFactory.close();
-
-
-    }
-}
+//            Member member1 =new Member();
+//            member1.setUsername("A");
+//            Member member2 =new Member();
+//            member2.setUsername("B");
+//            Member member3 =new Member();
+//            member3.setUsername("C");
+//            System.out.println("================");
+//            //Select가 두번 호출되는데 이떄
+//            //DB SEQ=1이되고 다음 호출에서 50개씩 써야되는데 처음 호출된게 0이 아닌 1이기 때문에
+//            //다시 호출해보는 것
+//            //DB SEQ=51이 된다.
+//            //다시 호출해서 50개가 맞으면
+////            결국 아래와 같이 되는 것
+//            //DB SEQ=1 |    1
+//            //DB SEQ=51|    2
+//            //DB SEQ=51|    3
+//            //결국 이렇게 동작하게 되는 것
+//            entityManager.persist(member1);//이 시점에 최적화 51개로 맞추고 이후에 더미로호출
+//            entityManager.persist(member2);//MEM
+//            entityManager.persist(member3);//MEM
+//            //이후 두개는 메모리에서 데이터를 호출하는 것
+//
+//            System.out.println("member1 = " + member1.getId());
+//            System.out.println("member2 = " + member2.getId());
+//            System.out.println("member3 = " + member3.getId());
+//            System.out.println("================");
+//            transaction.commit();
+//        }catch (Exception e){
+//            transaction.rollback();
+//        }finally {
+//            //메니져와 팩토리 닫기
+//            entityManager.close();
+//            //엔티티메니져가 내부적으로 데이터베이스 커넥션을 물고 동작하기 때문에 성능을 위해서는
+//            //호출 후 닫아줘야 한다.
+//        }
+//        entityManagerFactory.close();
+//
+//
+//    }
+//}
