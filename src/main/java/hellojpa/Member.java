@@ -16,11 +16,23 @@ public class Member {
     private String name;
 
     //여기서부터 중요
-    @Column(name = "TEAM_ID")
-    private Long teamId;
+//    @Column(name = "TEAM_ID")
+//    private Long teamId;
     //teamId를 가지고 와서 직접 타입을 적어준다.
     //왜냐하면 맴버는 맴버랑 팀을 레퍼런스로 가져가야 되는데 그게 아니라 지금
     //형식은 DB의 PK처럼 설계가 된 것이다.
+
+
+    @ManyToOne//Member가 Many이기 때문에 many가 먼저온다.
+            (fetch = FetchType.LAZY )//FetchType.EAGER이게 기본타입이라 한번에 다 가져오는 것
+    //FetchType.LAZY는 지연 로딩 전략을 사용하면 쿼리를 나눠서 member를 조회 후
+    //team정보를 가져온다.
+    @JoinColumn(name = "TEAM_ID")//조인해야 되는 컬럼을 명시해준다.
+    private Team team;
+    //이렇게 객체로 주입할 경우 이 객체와 현재 객체의 관계를 명시하여 jpa에게 알려줘야 한다.
+    //회원과 팀은 DB관점으로 누가 one인 지 누가 many인 지 이러한 관계를 알려줘야 한다.
+    //객체 설계에서 맴버가 many이며 팀이 one인 상태이다.
+    //관계와 조인할 컬럼명을 명시해주면 끝난다.
 
     public Long getId() {
         return id;
@@ -38,12 +50,12 @@ public class Member {
         this.name = name;
     }
 
-    public Long getTeamId() {
-        return teamId;
+    public Team getTeam() {
+        return team;
     }
 
-    public void setTeamId(Long teamId) {
-        this.teamId = teamId;
+    public void setTeam(Team team) {
+        this.team = team;
     }
 }
 

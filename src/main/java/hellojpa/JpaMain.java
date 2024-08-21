@@ -33,25 +33,59 @@ public class JpaMain {
 //                    primary key (TEAM_ID)
 //    )
             //만약 위와 같이 RDB에 맞춰 모델링을 하게 된다면
-            Team team =new Team();
-            team.setName("TeamA");
-            entityManager.persist(team);
+//            Team team =new Team();
+//            team.setName("TeamA");
+//            entityManager.persist(team);
             //psersist하면 id에 값이 들어가기 때문에 id값이 세팅된다.
 
-            Member member=new Member();
-            member.setName("member1");
-            member.setTeamId(team.getId());
+//            Member member=new Member();
+//            member.setName("member1");
+//            member.setTeamId(team.getId());
             //영속상태이기 때문에 id값이 존재
-            entityManager.persist(member);
+//            entityManager.persist(member);
             //이처럼 객체 지향적이지 않고 id를 통해 외례키 방식으로 매핑된다.
 
-            Member findMember = entityManager.find(Member.class, member.getId());
-            Long findTeamId = findMember.getTeamId();
-            Team findTeam = entityManager.find(Team.class, findTeamId);
+//            Member findMember = entityManager.find(Member.class, member.getId());
+//            Long findTeamId = findMember.getTeamId();
+//            Team findTeam = entityManager.find(Team.class, findTeamId);
             //이처럼 계속 DB를 통해 흘러가서 직접 꺼내야 된다.
 //            이렇게 구성하게 되면 객체지향스럽지 못하다.
             //가장 주용한 것은 이렇게 객체를 테이블에 맞추어 데이터 중심으로 모델링하면
             //협력!!관계를 만들 수 없다.
+            //테이블은 외래키로 조인을 사용해서 연관관계 테이블을 탐색
+            //객체는 참조를 사용해서 연관된 객체를 찾는다.
+
+            //연관관계 매핑을 한다면?
+            Team team =new Team();
+            team.setName("TeamA");
+            entityManager.persist(team);
+
+            Member member=new Member();
+            member.setName("member1");
+            member.setTeam(team);
+            //이렇게 팀 자체를 넣으면 된다.
+            //이렇게 넣으면 jpa가 알아서 팀의 pk값을 꺼내서 foreign key값에 인서트할 때
+            //값을 넣어준다.
+
+            entityManager.persist(member);
+
+            entityManager.flush();
+            //flush로 쿼리를 DB로 날린 후 검색하도록 한다.
+            entityManager.clear();
+            //영속성 컨텍스트를 clear로 초기화하면 아래부터는 직접 조회 후 데이터를 가져온다.
+
+            Member findMember = entityManager.find(Member.class, member.getId());
+            Team findTeam = findMember.getTeam();
+            //이렇게 바로 Team객체를 꺼낼 수 있다.
+            //참조를 사용해서 연관관계 조회를 할 수 있다.
+            System.out.println("findTeam.getName() = " + findTeam.getName());
+
+            //Team객체를 수정
+            Team newteam = entityManager.find(Team.class, 100);
+            //이렇게 100을 가지는 팀 객체를 바로 setTeam으로 넣어주면 된다.
+            findMember.setTeam(newteam);
+            //이렇게 하면 영속성 컨텍스트에서 관리하고 있기 떄문에 커밋이 될 떄 flush를 통해
+            //변경감지로 수정된다. fk가 수정되는 것
 
             transaction.commit();
         }catch (Exception e){
