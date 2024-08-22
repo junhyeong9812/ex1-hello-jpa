@@ -56,36 +56,88 @@ public class JpaMain {
             //객체는 참조를 사용해서 연관된 객체를 찾는다.
 
             //연관관계 매핑을 한다면?
+//            Team team =new Team();
+//            team.setName("TeamA");
+//            entityManager.persist(team);
+//
+//            Member member=new Member();
+//            member.setName("member1");
+//            member.setTeam(team);
+//            //이렇게 팀 자체를 넣으면 된다.
+//            //이렇게 넣으면 jpa가 알아서 팀의 pk값을 꺼내서 foreign key값에 인서트할 때
+//            //값을 넣어준다.
+//
+//            entityManager.persist(member);
+//
+//            entityManager.flush();
+//            //flush로 쿼리를 DB로 날린 후 검색하도록 한다.
+//            entityManager.clear();
+//            //영속성 컨텍스트를 clear로 초기화하면 아래부터는 직접 조회 후 데이터를 가져온다.
+//
+//            Member findMember = entityManager.find(Member.class, member.getId());
+//            Team findTeam = findMember.getTeam();
+//            //이렇게 바로 Team객체를 꺼낼 수 있다.
+//            //참조를 사용해서 연관관계 조회를 할 수 있다.
+//            System.out.println("findTeam.getName() = " + findTeam.getName());
+
+            //Team객체를 수정
+//            Team newteam = entityManager.find(Team.class, 100);
+            //이렇게 100을 가지는 팀 객체를 바로 setTeam으로 넣어주면 된다.
+//            findMember.setTeam(newteam);
+            //이렇게 하면 영속성 컨텍스트에서 관리하고 있기 떄문에 커밋이 될 떄 flush를 통해
+            //변경감지로 수정된다. fk가 수정되는 것
+
+            //양방향 연관관계
+//            List<Member> members = findMember.getTeam().getMembers();
+//            //이렇게
+//            for (Member m :members){
+//                System.out.println("m = " + m.getName());
+//            }
+
+            //양방향 매핑시 가장 많이 하는 실수
+//            Member member=new Member();
+//            member.setName("member1");
+//            entityManager.persist(member);
+//
+//            Team team =new Team();
+//            team.setName("TeamA");
+//            team.getMembers().add(member);
+            //팀의 member에 add를 통해 member를 넣었다.
+            //맴버 객체를 생성해서 객체를 넣는다면?
+            //연관관계의 주인인 member에게 TEAM_ID가 들어가지 않고 null로 나온다.
+            //mappedby는 인서트할때 보지 않는다.
+
             Team team =new Team();
             team.setName("TeamA");
             entityManager.persist(team);
 
             Member member=new Member();
             member.setName("member1");
-            member.setTeam(team);
-            //이렇게 팀 자체를 넣으면 된다.
-            //이렇게 넣으면 jpa가 알아서 팀의 pk값을 꺼내서 foreign key값에 인서트할 때
-            //값을 넣어준다.
-
+            member.setTeam(team); //**
+            //이렇게 주인에 값을 넣어서 동작해보면
             entityManager.persist(member);
+//            entityManager.flush();
+//            entityManager.clear();
+//            team.addMember(member);
 
-            entityManager.flush();
-            //flush로 쿼리를 DB로 날린 후 검색하도록 한다.
-            entityManager.clear();
-            //영속성 컨텍스트를 clear로 초기화하면 아래부터는 직접 조회 후 데이터를 가져온다.
+//            team.getMembers().add(member);
+//            이렇게 해도 jpa에서 이 값을 사용하지 않는다
+            //편의 메소드가 양쪽에 다 존재하면 문제가 일어날 수도 있다.
 
-            Member findMember = entityManager.find(Member.class, member.getId());
-            Team findTeam = findMember.getTeam();
-            //이렇게 바로 Team객체를 꺼낼 수 있다.
-            //참조를 사용해서 연관관계 조회를 할 수 있다.
-            System.out.println("findTeam.getName() = " + findTeam.getName());
-
-            //Team객체를 수정
-            Team newteam = entityManager.find(Team.class, 100);
-            //이렇게 100을 가지는 팀 객체를 바로 setTeam으로 넣어주면 된다.
-            findMember.setTeam(newteam);
-            //이렇게 하면 영속성 컨텍스트에서 관리하고 있기 떄문에 커밋이 될 떄 flush를 통해
-            //변경감지로 수정된다. fk가 수정되는 것
+            team.getMembers().add(member); //**
+            //하지만 이렇게 이걸 넣어주면 1차 캐시에 값이 들어가서 
+            //1차 캐시를 조회했을 때 아래에 member정보를 불러올 수 있게 되는 것
+            //이때 양방향 매핑을 할 때는 사실 양쪽에 다 값을 넣어주는 게 맞다.
+            Team findTeam = entityManager.find(Team.class, team.getId());
+            //만약
+            //            entityManager.flush();
+//            entityManager.clear();
+//            이 두개를 주석하면 1차 캐시에 정보가 제대로 없어서
+            List<Member> members =findTeam.getMembers();
+            for(Member m :members){
+                System.out.println("m.getName() = " + m.getName());
+            }
+            System.out.println("m.getName() = "+findTeam);
 
             transaction.commit();
         }catch (Exception e){

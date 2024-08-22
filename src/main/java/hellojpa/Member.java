@@ -56,7 +56,28 @@ public class Member {
 
     public void setTeam(Team team) {
         this.team = team;
+        team.getMembers().add(this);
+        //결국 this가 자기 자신 객체 자체이다.
     }
+    //직관적인 명칭 구성
+    public void changeTeam(Team team) {
+        this.team = team;
+        team.getMembers().add(this);
+        //결국 this가 자기 자신 객체 자체이다.
+    }
+
+    @Override
+    public String toString() {
+        return "Member{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", team=" + team.toString() +
+                '}';
+    }// team.toString이처럼 팀.toString을 호출하게 되면
+    //팀 객체 내부의 members를 호출하는데 이 컬랙션 안에 투 스트링을 또 만들게 된다.
+    //이런식으로 롬복 라이브러리를 투스트링으로 만들면 다 만들어버린다.
+    //그래서
+
 }
 
 //@Entity(name="Member") //엔티티가 존재해야 jpa가 로딩할 때 jpa를 사용하는 엔티티라고 인식 후 관리하게 된다.
