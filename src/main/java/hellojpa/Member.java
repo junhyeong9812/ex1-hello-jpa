@@ -28,6 +28,7 @@ public class Member {
     //FetchType.LAZY는 지연 로딩 전략을 사용하면 쿼리를 나눠서 member를 조회 후
     //team정보를 가져온다.
     @JoinColumn(name = "TEAM_ID")//조인해야 되는 컬럼을 명시해준다.
+    //이 조인컬럼은 필수
     private Team team;
     //이렇게 객체로 주입할 경우 이 객체와 현재 객체의 관계를 명시하여 jpa에게 알려줘야 한다.
     //회원과 팀은 DB관점으로 누가 one인 지 누가 many인 지 이러한 관계를 알려줘야 한다.
@@ -79,6 +80,43 @@ public class Member {
     //그래서
 
 }
+
+//일대다 관계에서 TEAM이 주인일 경우
+//@Entity
+//public class Member {
+//    @Id @GeneratedValue
+//    @Column(name = "MEMBER_ID")
+//    private Long id;
+//    @Column(name = "USERNAME")
+//    private String name;
+//
+//    일대다 양방향을 하고 싶을 경우
+//    @ManyToOne
+//    @JoinColumn(name="TEAM_ID",insertable = false,updatable = false)
+//    private Team team;
+    //@JoinColumn(name="TEAM_ID")이게 연관관계 주인이라 서로 주인으로 되어 있어서
+    //망하는 것 그래서 JPA에서 순서를 제대로 파악 못하기 때문에
+//insertable = false,updatable = false 이 두 옵션을 통해 읽기 전용이 되어버린다.
+//매핑은 되어있지만 인서트와 업데이트를 안하게 되는 것
+//그래서 결과적으로 팀에 있는 맴버가 주인으로 사용되고 맴버의 팀은 읽기 전용으로 걸어버리는 것
+
+//    public Long getId() {
+//        return id;
+//    }
+//
+//    public void setId(Long id) {
+//        this.id = id;
+//    }
+//
+//    public String getName() {
+//        return name;
+//    }
+//
+//    public void setName(String name) {
+//        this.name = name;
+//    }
+//
+//}
 
 //@Entity(name="Member") //엔티티가 존재해야 jpa가 로딩할 때 jpa를 사용하는 엔티티라고 인식 후 관리하게 된다.
 ////name속성은 디폴트로 위와 같이 현재 클래스명과 같다.

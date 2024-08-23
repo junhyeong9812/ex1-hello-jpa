@@ -20,6 +20,8 @@ public class Team {
     //이걸 알기 위해서는 객체와 테이블간에 연관관계를 맺는 차이를 이해해야 한다.
     private List<Member> members=new ArrayList<>();
     //add할때 null포인트가 안뜨도록 빈 어레이리스트 객체를 생성
+    //이렇게 list로 저장하면 DB에는 그 객체가 생성되진 않지만 JPA에서 영속성 컨텍스트 과정에서
+    //리스트에 맴버 객체를 조인해서 채워준다.
     public void addMember(Member member){
     member.setTeam(this);
     }
@@ -111,3 +113,47 @@ public class Team {
         this.name = name;
     }
 }
+
+////일대다 관계에서 TEAM이 주인일 경우
+//@Entity
+//public class Team {
+//    @Id
+//    @GeneratedValue
+//    @Column(name = "TEAM_ID")
+//    private Long id;
+//    private String name;
+//
+//    @OneToMany
+//    @JoinColumn(name = "TEAM_ID")
+//    private List<Member> members=new ArrayList<>();
+//
+//    public void addMember(Member member){
+//        member.setTeam(this);
+//    }
+//
+//
+//
+//    public List<Member> getMembers() {
+//        return members;
+//    }
+//
+//    public void setMembers(List<Member> members) {
+//        this.members = members;
+//    }
+//
+//    public Long getId() {
+//        return id;
+//    }
+//
+//    public void setId(Long id) {
+//        this.id = id;
+//    }
+//
+//    public String getName() {
+//        return name;
+//    }
+//
+//    public void setName(String name) {
+//        this.name = name;
+//    }
+//}

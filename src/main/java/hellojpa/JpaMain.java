@@ -107,37 +107,78 @@ public class JpaMain {
             //연관관계의 주인인 member에게 TEAM_ID가 들어가지 않고 null로 나온다.
             //mappedby는 인서트할때 보지 않는다.
 
-            Team team =new Team();
-            team.setName("TeamA");
-            entityManager.persist(team);
+//            Team team =new Team();
+//            team.setName("TeamA");
+//            entityManager.persist(team);
+//
+//            Member member=new Member();
+//            member.setName("member1");
+//            member.setTeam(team); //**
+//            //이렇게 주인에 값을 넣어서 동작해보면
+//            entityManager.persist(member);
+////            entityManager.flush();
+////            entityManager.clear();
+////            team.addMember(member);
+//
+////            team.getMembers().add(member);
+////            이렇게 해도 jpa에서 이 값을 사용하지 않는다
+//            //편의 메소드가 양쪽에 다 존재하면 문제가 일어날 수도 있다.
+//
+//            team.getMembers().add(member); //**
+//            //하지만 이렇게 이걸 넣어주면 1차 캐시에 값이 들어가서
+//            //1차 캐시를 조회했을 때 아래에 member정보를 불러올 수 있게 되는 것
+//            //이때 양방향 매핑을 할 때는 사실 양쪽에 다 값을 넣어주는 게 맞다.
+//            Team findTeam = entityManager.find(Team.class, team.getId());
+//            //만약
+//            //            entityManager.flush();
+////            entityManager.clear();
+////            이 두개를 주석하면 1차 캐시에 정보가 제대로 없어서
+//            List<Member> members =findTeam.getMembers();
+//            for(Member m :members){
+//                System.out.println("m.getName() = " + m.getName());
+//            }
+//            System.out.println("m.getName() = "+findTeam);
 
-            Member member=new Member();
+            ////일대다 관계에서 TEAM이 주인일 경우
+            Member member = new Member();
             member.setName("member1");
-            member.setTeam(team); //**
-            //이렇게 주인에 값을 넣어서 동작해보면
             entityManager.persist(member);
-//            entityManager.flush();
-//            entityManager.clear();
-//            team.addMember(member);
 
-//            team.getMembers().add(member);
-//            이렇게 해도 jpa에서 이 값을 사용하지 않는다
-            //편의 메소드가 양쪽에 다 존재하면 문제가 일어날 수도 있다.
+            Team team = new Team();
+            team.setName("teamA");
+            //여기 포인트가 애매해진다. 팀의 테이블에 인서트가 되면 되지만
+            //팀 테이블에 인서트될 수 있는 내용이 아니다.
+            //이러면 외래키가 바뀌어야 되는데 이 외래키가 맴버 테이블에 존재
+            team.getMembers().add(member);
+            //그래서 Member에 업데이트를 하게 된다.
+            entityManager.persist(team);
+            //이렇게 하면 맴버의 외래키가 업데이트 될 것이다.
+            //팀이 저장이 되는 게 맞지만
+            //이때 Member테이블에서 Update문이 나가서 TEAM_ID를 변경하는 것을 볼 수 있다.
+            //이때 create one-to-many row 라고 해서 업데이트 쿼리가 나간다.
+            //DB값은 정상적으로 들어왔지만 쿼리가 기존보다 많이 나가는 것을 알 수 있다/
+            //이러한 업데이트 쿼리가 나가야 되는 이유는 팀 입장에서 팀을 변경할 때 이 부분은
+            //팀 테이블에 넣으면 되지만 팀 엔티티를 저장하는데 
+            //team.getMembers().add(member);이 부분에서 맴버에 가서 맴버에 정보를 저장할때
+            //맴버 테이블에 가서 업데이트를 해야 정보를 저장할 수 있기 때문에 맴버로 가서 업데이트를
+            //하는 것
+            //이러한 성능상 단점이 조금 있지만
+            //실질적으로 문제가 생기는 이유는 JPA를 잘 아는 사람도 기본적으로 코드 리뷰를 할 때
+            //코드만 보이지 바로 그 코드에 대한 쿼리까지 생각하지 않는다.
+            //그러면 비즈니스 로직을 짜다보면 팀만 손을 댓는데 쿼리를 추적했을 때 맴버까지 업데이트가
+            //되어버린다. 팀엔티티를 수정했는데 맴버가 변경되어버리는 상황이 일어나고
+            //실무에서 테이블이 엄청 많은데 이렇게 되면 운영이 엄청 힘들어진다.
+            //그래서 다대일 단반향에서 필요 시 양방향으로 변경하는 전략을 자주 사용
+            //연관관계 주인을 맴버로 가져가는 것
+            //그냥 다대일 관계에서 양방향 형식으로 사용하는 게 더 좋다.
 
-            team.getMembers().add(member); //**
-            //하지만 이렇게 이걸 넣어주면 1차 캐시에 값이 들어가서 
-            //1차 캐시를 조회했을 때 아래에 member정보를 불러올 수 있게 되는 것
-            //이때 양방향 매핑을 할 때는 사실 양쪽에 다 값을 넣어주는 게 맞다.
-            Team findTeam = entityManager.find(Team.class, team.getId());
-            //만약
-            //            entityManager.flush();
-//            entityManager.clear();
-//            이 두개를 주석하면 1차 캐시에 정보가 제대로 없어서
-            List<Member> members =findTeam.getMembers();
-            for(Member m :members){
-                System.out.println("m.getName() = " + m.getName());
-            }
-            System.out.println("m.getName() = "+findTeam);
+            //일대다 단방향 정리
+//            1.일대다 단방향은 일대다에서 일이 연관관계의 주인
+//            2. 테이블 일대다 관계는 항상 다 쪽에 외래키가 존재
+//            3.객체와 테이블의 차이때문에 반대편 테이블의 외래키를 관리하는 특이한 구조
+//            4.@JoinColumn을 꼭 사용해야 되며 그렇지 않으면 조인 테이블 방식을
+//            사용한다.(중간에 테이블을 하나 추가함)
+
 
             transaction.commit();
         }catch (Exception e){
