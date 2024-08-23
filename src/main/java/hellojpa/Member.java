@@ -5,7 +5,9 @@ import jakarta.persistence.*;
 import java.sql.Clob;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 public class Member {
@@ -34,10 +36,21 @@ public class Member {
     //회원과 팀은 DB관점으로 누가 one인 지 누가 many인 지 이러한 관계를 알려줘야 한다.
     //객체 설계에서 맴버가 many이며 팀이 one인 상태이다.
     //관계와 조인할 컬럼명을 명시해주면 끝난다.
-
+    @OneToOne
+    @JoinColumn(name = "LOCKER_ID")
+    private Locker locker;
     public Long getId() {
         return id;
     }
+
+    //다대다 관계
+//    @ManyToMany
+//    @JoinTable(name = "MEMBER_PRODUCT")
+//    private List<Product> products=new ArrayList<>();
+
+    //다대다 관계 풀어내기
+    @OneToMany(mappedBy = "member")
+    private List<MemberProduct> memberProducts=new ArrayList<>();
 
     public void setId(Long id) {
         this.id = id;
