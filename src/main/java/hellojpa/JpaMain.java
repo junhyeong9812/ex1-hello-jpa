@@ -140,18 +140,18 @@ public class JpaMain {
 //            System.out.println("m.getName() = "+findTeam);
 
             ////일대다 관계에서 TEAM이 주인일 경우
-            Member member = new Member();
-            member.setName("member1");
-            entityManager.persist(member);
-
-            Team team = new Team();
-            team.setName("teamA");
+//            Member member = new Member();
+//            member.setName("member1");
+//            entityManager.persist(member);
+//
+//            Team team = new Team();
+//            team.setName("teamA");
             //여기 포인트가 애매해진다. 팀의 테이블에 인서트가 되면 되지만
             //팀 테이블에 인서트될 수 있는 내용이 아니다.
             //이러면 외래키가 바뀌어야 되는데 이 외래키가 맴버 테이블에 존재
-            team.getMembers().add(member);
+//            team.getMembers().add(member);
             //그래서 Member에 업데이트를 하게 된다.
-            entityManager.persist(team);
+//            entityManager.persist(team);
             //이렇게 하면 맴버의 외래키가 업데이트 될 것이다.
             //팀이 저장이 되는 게 맞지만
             //이때 Member테이블에서 Update문이 나가서 TEAM_ID를 변경하는 것을 볼 수 있다.
@@ -179,6 +179,27 @@ public class JpaMain {
 //            4.@JoinColumn을 꼭 사용해야 되며 그렇지 않으면 조인 테이블 방식을
 //            사용한다.(중간에 테이블을 하나 추가함)
 
+            //상속관계 매핑 Join 전략
+            //movie를 등록한다면?
+            Movie movie= new Movie();
+            movie.setDirector("a");
+            //만약 item에 세터 개터가 없으면 item쪽에 넣어야 하는 객체 정보는
+            //없기에 item에도 세터와 게터 생성이 필요
+            movie.setActor("BBBB");
+            movie.setName("ABC");
+            movie.setPrice(10000);
+            entityManager.persist(movie);
+            //싱글테이블 전략이면 쿼리가 심플하게 하나만 생성
+
+            entityManager.flush();
+            entityManager.clear();
+
+//            Movie findMovie = entityManager.find(Movie.class, movie.getId());
+//            System.out.println("findMovie = " + findMovie);
+
+            //구현 클래스 분할 테이블 전략을 사용한 이후 부모 객체로 조회한다면?
+            Item item =entityManager.find(Item.class,movie.getId());
+            System.out.println("item = " + item);
 
             transaction.commit();
         }catch (Exception e){
