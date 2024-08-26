@@ -1,7 +1,9 @@
 package hellojpa;
 
 import jakarta.persistence.*;
+import org.hibernate.Hibernate;
 
+import java.time.LocalDateTime;
 import java.util.List;
 //연관관계 매핑
 public class JpaMain {
@@ -181,29 +183,256 @@ public class JpaMain {
 
             //상속관계 매핑 Join 전략
             //movie를 등록한다면?
-            Movie movie= new Movie();
-            movie.setDirector("a");
-            //만약 item에 세터 개터가 없으면 item쪽에 넣어야 하는 객체 정보는
-            //없기에 item에도 세터와 게터 생성이 필요
-            movie.setActor("BBBB");
-            movie.setName("ABC");
-            movie.setPrice(10000);
-            entityManager.persist(movie);
-            //싱글테이블 전략이면 쿼리가 심플하게 하나만 생성
+//            Movie movie= new Movie();
+//            movie.setDirector("a");
+//            //만약 item에 세터 개터가 없으면 item쪽에 넣어야 하는 객체 정보는
+//            //없기에 item에도 세터와 게터 생성이 필요
+//            movie.setActor("BBBB");
+//            movie.setName("ABC");
+//            movie.setPrice(10000);
+//            entityManager.persist(movie);
+//            //싱글테이블 전략이면 쿼리가 심플하게 하나만 생성
+//
+//            entityManager.flush();
+//            entityManager.clear();
+//
+////            Movie findMovie = entityManager.find(Movie.class, movie.getId());
+////            System.out.println("findMovie = " + findMovie);
+//
+//            //구현 클래스 분할 테이블 전략을 사용한 이후 부모 객체로 조회한다면?
+//            Item item =entityManager.find(Item.class,movie.getId());
+//            System.out.println("item = " + item);
+
+            //MappedSuperclass
+//            Member member =new Member();
+//            member.setName("user1");
+//            member.setCreateBy("kim");
+//            member.setCreateDate(LocalDateTime.now());
+//            entityManager.persist(member);
+//            entityManager.flush();
+//            entityManager.clear();
+
+            //이렇게 데이터를 넣으면 create테이블에 상속한 엔티티 속성이 추가된 것을 볼 수 있다.
+//            create table Member (
+//                    LOCKER_ID bigint unique,
+//                    MEMBER_ID bigint not null,
+//                    TEAM_ID bigint,
+//                    createDate timestamp(6),
+//                    lastModifiedDate timestamp(6),
+//                    USERNAME varchar(255),
+//                    createBy varchar(255),
+//                    lastmodifiedBy varchar(255),
+//                    primary key (MEMBER_ID)
+//    ) //이렇게 상속된 속성도 존재한다.
+
+            //프록시란?
+//            Member member = entityManager.find(Member.class,1L);
+////            printMemberAndTeam(member);
+//            //이렇게 팀 정보를 출력하려고 할 경우
+//            //쿼리가 DB에 맴버를 찾을 때 연관된 Team도 한번에 가져오면 좋을텐데
+//            printMember(member);
+//            Member member=new Member();
+//            member.setName("hello");
+//            entityManager.persist(member);
+//
+//            entityManager.flush();
+//            entityManager.clear();
+            //영속성을 비우고
+
+            //find
+//            Member findMember = entityManager.find(Member.class, member.getId());
+//            System.out.println("findMember.getId() = " + findMember.getId());
+//            System.out.println("findMember.getName() = " + findMember.getName());
+
+            //getReference
+//            Member findMember = entityManager.getReference(Member.class, member.getId());
+//            System.out.println("findMember = " + findMember.getClass());
+            //그렇다면 셀렉트문으로 정보를 안가져오는데 findMember이 객체는 무엇인가?
+            //class hellojpa.Member$HibernateProxy$boexxlZu
+            //위와 같이 하이버네이트에서 생성한 프록시 클래스로 값이 존재하는 것을 확인할 수 있다.
+            //레퍼런스는 맴버 객체를 주는 게 아니라 하이버네이트에서 자기 내부의 라이브러를 사용하여
+            //가짜 엔티티(프록시 엔티티)를 반환해준다.
+            //겉은 같은데 내부 객체들이 다 비여있는 것
+            //그리고 엔티티 내부에 target이라는 객체가 존재하는데 이게 진짜 객체를 가리키게 된다.
+            //프록시의 특징으로는
+            //실제 클래스를 상속받아서 만들어진다.
+            //실제 클래스와 겉모양은 같다. >>하이버네이트에서 내부적으로 프록시라이브러리로
+            // 상속을 하는 것
+            //사용하는 입장에서는 구분하지 않고 그냥 사용하면 됨
+            //상속 관계는 부모타입으로 보고 쓰는 것과 같은데
+//            프록시 객체의 초기화라고 하는 겟 러퍼런스를 통해 프록시 객체를 가져오면 프록시 객체를 가져와서
+//            겟 네임을 호출하면 처음에 타겟에 값이 없으니 영속성 컨텍스트에 값을 요청한다.
+//                    그러면 영속성이 DB를 조회해서 실제 엔티티 객체를 생성해서 준다. 그러면 타겟이라는 맴버 변수의 겟 네임과 매핑을 시키는 것 그걸 통해 실제 객체를 연결해준다.
+//            그래서 getName을 했을 때 타겟의 갯네임으로 반환
+            //결국 중요한 것은 프록시에 값이 없으면 영속성 컨텍스트한테 초기화 요청을 해서
+            //실제 엔티티를 생성하는 것
+            //실제 하이버네이트 구현체마다 이러한 메커니즘은 다르지만 보통은 위와 같다.
+//            프록시 특징
+//            1.프록시 객체는 처음 사용할 때 한 번만 초기화
+//            2. 프록시 객체를 초기화 할 때, 프록시 객체가 실제 엔티티로 바뀌는 것은 아님, 초
+//            기화되면 프록시 객체를 통해서 실제 엔티티에 접근 가능
+//            3. 프록시 객체는 원본 엔티티를 상속받음, 따라서 타입 체크시 주의해야함 (== 비
+//            교 실패, 대신 instance of 사용)
+//            4. 영속성 컨텍스트에 찾는 엔티티가 이미 있으면 em.getReference()를 호출해
+//            도 실제 엔티티 반환
+//            5. 영속성 컨텍스트의 도움을 받을 수 없는 준영속 상태일 때, 프록시를 초기화하면
+//            문제 발생
+//            (하이버네이트는 org.hibernate.LazyInitializationException 예외를 터트림)
+
+
+//            System.out.println("findMember.getId() = " + findMember.getId());
+//            //이 레퍼런스를 찾는 시점에 아이디 값을 이미 넣었기 때문에 값이 있어서 DB에 쿼리를
+//
+//            System.out.println("Before_findMember = " + findMember.getClass());
+//            //Before_findMember = class hellojpa.Member$HibernateProxy$revpGj5Z
+////            System.out.println("findMember.getName() = " + findMember.getName());
+//            //쿼리를 안하지만 Name은 DB에만 존재해서
+//            //실제 이름을 확인하기 위해서 이때 DB에 쿼리를 날려서 member내부에 값을 채운다.
+//            //실제 메커니즘은
+//            //
+//            System.out.println("After_findMember = " + findMember.getClass());
+//            //이때 Before_findMember의 맴버랑 After_findMember이때의 맴버는 바뀌는 게 아니다.
+            //After_findMember = class hellojpa.Member$HibernateProxy$revpGj5Z
+            //이처럼 둘다 똑같은 객체이다.
+            //교체되는 게 아니라 타겟에만 값이 채워져서 값을 호출할 떄 가져온다.
+
+            //==비교가 될까?
+//            Member member1=entityManager.find(Member.class, member.getId());
+//            System.out.println("(member1.getClass()==findMember.getClass()) = " + (member1.getClass()==findMember.getClass()));
+//            System.out.println("member1 = " + member1.getClass());
+//            System.out.println("findMember = " + findMember.getClass());
+            //이렇게 비교하면 확인 불가능
+            //System.out.println("findMember.getName() = " + findMember.getName());
+            //find도 같은 프록시를 가리키는데
+//            영속성 컨텍스트는 동일한 식별자를 가지는 엔티티는 하나의 객체로 관리합니다.
+//            따라서, 이미 getReference() 메서드에 의해 특정 엔티티에 대한
+//            프록시 객체가 영속성 컨텍스트에 존재하고 있다면, 그 엔티티의 실제 객체를
+//            find() 메서드를 통해 조회하려고 해도 영속성 컨텍스트는 새로운 객체를 반환하지
+//            않고 기존의 프록시 객체를 반환합니다.
+
+            //==비교 확인
+//            Member member1=new Member();
+//            member1.setName("member1");
+//            entityManager.persist(member1);
+//
+//            Member member2=new Member();
+//            member2.setName("member2");
+//            entityManager.persist(member2);
+//
+//            entityManager.flush();
+//            entityManager.clear();
+//            Member m1=entityManager.find(Member.class, member1.getId());
+//            Member m2=entityManager.getReference(Member.class, member2.getId());
+//            System.out.println("m1 = " + m1.getClass());
+//            System.out.println("m2 = " + m2.getClass());
+//            System.out.println("(m1.getClass()==m2.getClass()) = " +
+//                    (m1.getClass()==m2.getClass()));
+//            m1 = class hellojpa.Member
+//            m2 = class hellojpa.Member$HibernateProxy$eii0I4dz
+            //이렇게 객체가 다르다.
+//            이때 이러한 비교는 실질적으로 로직에 의해 동작할텐데
+//    logic(m1,m2);
+            //만약 먼저 find한 객체를 레퍼런스한다면?
+//            Member m1=entityManager.find(Member.class, member1.getId());
+//            Member m2=entityManager.getReference(Member.class, member1.getId());
+//            System.out.println("m1 = " + m1);
+//            System.out.println("m2 = " + m2);
+            //이렇게 되면
+            //==비교에 대해서 같은 영속성 컨텍스트 안에서 조회하면 항상 같다고 나와야 한다.
+            //m1과 m2가 같다고 나오는데
+            //1.이미 맴버를 영속성 컨텍스트에 올려놨기 때문에 이미올라온 데이터를 프록시로
+            //가져올 필요가 없어서
+            //2.jpa에서는 a==a는 항상 true가 나와야 한다.
+            //결국 m1과 레퍼런스는 항상 ==이 성립해야 된다.
+            //쉽게 말해서 m1과 m2는 컬렉션마냥 ==비교가 항상 한 영속성 컨텍스트에서
+            //PK가 같으면 항상 true를 반환해야 된다.
+            //가장 중요한 것은 같은 트랜잭션 안에서 같은 것에 대한 보장을 해줘야 하기 떄문에 이런
+            //메커니즘인 것
+
+            //준영속성 상태 관리
+//            Member member1=new Member();
+//            member1.setName("member1");
+//            entityManager.persist(member1);
+//
+//            Member member2=new Member();
+//            member2.setName("member2");
+//            entityManager.persist(member2);
+//
+//            entityManager.flush();
+//            entityManager.clear();
+
+//            Member m1=entityManager.getReference(Member.class, member1.getId());
+//            Member m2=entityManager.getReference(Member.class, member1.getId());
+//            Member m2=entityManager.find(Member.class, member1.getId());
+            //만약 둘다 프록시로 가져왔을 때 같은 프록시가 반환된다.
+//            System.out.println("m1 = " + m1.getClass());
+//            System.out.println("m2 = " + m2.getClass());
+//            m1 = class hellojpa.Member$HibernateProxy$3stjOvr5
+//            m2 = class hellojpa.Member$HibernateProxy$3stjOvr5
+            //재초기화가 안된다.
+            //또한 레퍼런스로 그 객체를 가져온 이후 find로 다시한번 그 객체를 호출하면
+//            m1 = class hellojpa.Member$HibernateProxy$5dfTpXKF
+//            m2 = class hellojpa.Member$HibernateProxy$5dfTpXKF
+            //이렇게 똑같은 프록시를 호출하는 것을 알 수 있다.
+            //프록시를 한번 조회하고
+            //프록시에 문제없도록 개발하는 게 중요한데
+            //JPA에서는 처음 조회된 것에 대해 클래스 타입을 맞춰준다.
+            //프록신ㄴ 부모엔티티를 상속받는 것이기 때문에 우리는 ==대신 인스텐스 오브로 비교하고
+            //이런 작업이 필요하다.
+            //가장 중요한 것>> 영속성 컨텍스트에 도움받을 수 없는 준영속일 때, 프록시를 초기화하면
+            //문제발생
+//            Member m1=entityManager.getReference(Member.class, member1.getId());
+//            System.out.println("m1 = " + m1.getClass());//proxy
+            //이렇게 가져왔을 떄
+//            m1.getName();
+            //이때 초기화될텐데
+//            entityManager.close();
+            //이때 영속성 컨텍스트를 끄거나
+//            entityManager.detach(m1);
+            //이렇게 강제로 준영속으로 만들 경우
+//            m1.getName();
+//            System.out.println("m1 = " + m1.getName());
+            //동작이 안된다.>>익셉션을 확인해보면
+//            m1 = class hellojpa.Member$HibernateProxy$1DfBUUeo
+//            e = org.hibernate.LazyInitializationException: could not initialize proxy [hellojpa.Member#1] - no Session
+//            8월 26, 2024 9:18:46 오후 org.hibernate.engine.jdbc.connections.internal
+            //이렇게 detach를 하면 프록시를 초기화할 수 없다고 나온다.
+            //no Session이라고 나오는데
+            //영속성 컨텍스트 세션에 없다고 나오는 것
+            //close로 닫아도 똑같다.
+
+            //프록시 초기화 확인
+            Member member1=new Member();
+            member1.setName("member1");
+            entityManager.persist(member1);
+
+            Member member2=new Member();
+            member2.setName("member2");
+            entityManager.persist(member2);
 
             entityManager.flush();
             entityManager.clear();
+            Member m1=entityManager.getReference(Member.class, member1.getId());
+            System.out.println("m1 = " + m1.getClass());//proxy
 
-//            Movie findMovie = entityManager.find(Movie.class, movie.getId());
-//            System.out.println("findMovie = " + findMovie);
+//            1.isLoad :프록시 인스턴스의 초기화 여부 확인
+            System.out.println("isLoad = " +entityManagerFactory.getPersistenceUnitUtil().isLoaded(m1) );
+            //이렇게 프록시 초기화를 안한 상태에서 로딩 유무를 파악 후 isLoad는 false가 나온다.
+            //호출하여 초기화하면 true가 나온다.
+//            2. getClass : 프록시 클래스 확인
+            System.out.println("m1 = " + m1.getClass());//
+//            3. 프록시 강제 초기화 m1.getName()을 통해 강제 초기화를 진행한 것인데
+            //별도 하이버네이트 별도 메소드가 존재하는데
+            Hibernate.initialize(m1);//이렇게 강제 초기화가 가능하다.
+            //셀렉트 쿼리가 나가는 것을 볼 수 있다.
 
-            //구현 클래스 분할 테이블 전략을 사용한 이후 부모 객체로 조회한다면?
-            Item item =entityManager.find(Item.class,movie.getId());
-            System.out.println("item = " + item);
+            //참고 JPA는 강제초기화가 없어서
+            //m1.getName()이런식으로 강제 호출해야 된다.
 
             transaction.commit();
         }catch (Exception e){
             transaction.rollback();
+            System.out.println("e = " + e);
         }finally {
             //메니져와 팩토리 닫기
             entityManager.close();
@@ -214,8 +443,55 @@ public class JpaMain {
 
 
     }
+    private static void logic(Member m1,Member m2){
+//        System.out.println("(m1.getClass()==m2.getClass()) = " +
+//                (m1.getClass()==m2.getClass()));
+        System.out.println("(m1==m2) = " +
+                (m1 instanceof Member));
+        System.out.println("(m1==m2) = " +
+                (m2 instanceof Member));
+    }//둘다 True인 이유
+//    이 상황에서는 두 객체 m1과 m2가 프록시 타입이지만 instanceof Member 검사를 했을 때 모두 true를 반환하는 이유를 이해하는 것이 중요합니다.
+//
+//1. 프록시 객체와 instanceof 연산자
+//    Hibernate의 프록시 객체는 실제 엔티티 클래스를 상속받아 만들어집니다. 예를 들어, Member 클래스의 프록시 객체는 Member 클래스를 상속하는 프록시 클래스입니다. 따라서 프록시 객체는 instanceof 연산자를 사용해 부모 클래스인 Member의 인스턴스로 인식됩니다.
+//
+//            java
+//    코드 복사
+//System.out.println("(m1==m2) = " + (m1 instanceof Member));
+//System.out.println("(m1==m2) = " + (m2 instanceof Member));
+//    이 코드에서 m1과 m2는 프록시 객체입니다. 프록시 객체는 실제 엔티티 클래스(Member)를 상속받기 때문에, m1 instanceof Member와 m2 instanceof Member 모두 true를 반환하게 됩니다.
+//
+//2. == 연산자와 instanceof의 차이
+//== 연산자는 두 객체의 레퍼런스가 동일한지를 확인합니다. 즉, 두 변수가 동일한 객체를 참조하고 있는지 확인하는 것입니다. 이 경우 프록시 객체이든 실제 객체이든 상관없이, 두 변수가 동일한 객체를 가리키고 있으면 true를 반환합니다.
+//
+//            instanceof 연산자는 객체가 특정 클래스나 그 클래스의 서브클래스인지 확인합니다. 프록시 객체는 해당 엔티티 클래스(Member)의 서브클래스이기 때문에, instanceof Member는 true를 반환합니다.
+//
+//            결론
+//instanceof Member가 true를 반환하는 이유는, m1과 m2가 프록시 객체이지만, 프록시 객체가 Member 클래스를 상속받기 때문입니다. 따라서 m1 instanceof Member와 m2 instanceof Member는 모두 true가 됩니다.
+//
+//    java
+//    코드 복사
+//System.out.println("(m1==m2) = " + (m1 instanceof Member));
+//System.out.println("(m1==m2) = " + (m2 instanceof Member));
+//    이 코드에서는 instanceof 연산자를 사용하여 m1과 m2가 Member 클래스의 인스턴스인지를 확인하고 있기 때문에, 둘 다 true로 평가되는 것입니다. m1과 m2가 프록시 객체이더라도, 그들은 Member 클래스를 상속받는 서브클래스이므로, instanceof 연산자는 true를 반환합니다.
+
+    private static void printMember(Member member) {
+        System.out.println("member.getName() = " + member.getName());
+    }
+
+    private static void printMemberAndTeam(Member member){
+        String username= member.getName();
+        System.out.println("username = " + username);
+
+        Team team= member.getTeam();
+        System.out.println("team = " + team.getName());
+        //이렇게 팀 정보를 출력하려고 할 경우
+        //쿼리가 DB에 맴버를 찾을 때 연관된 Team도 한번에 가져오면 좋을텐데
+
+    }
 }
-        
+
 //엔티티 매핑
 //public class JpaMain {
 //    //psvm을 통해 바로 생성 가능
