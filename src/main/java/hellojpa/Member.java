@@ -26,9 +26,12 @@ public class Member extends BaseEntity{
 
 
     @ManyToOne//Member가 Many이기 때문에 many가 먼저온다.
-            (fetch = FetchType.LAZY )//FetchType.EAGER이게 기본타입이라 한번에 다 가져오는 것
+//            (fetch = FetchType.LAZY )//FetchType.EAGER이게 기본타입이라 한번에 다 가져오는 것
     //FetchType.LAZY는 지연 로딩 전략을 사용하면 쿼리를 나눠서 member를 조회 후
-    //team정보를 가져온다.
+    //team정보가 필요할 경우 가져온다.
+    //(fetch = FetchType.LAZY )설정인 경우 member만 조회하게 되면 team에는 프록시 객체로 조인하여
+    //생성되는 것>>member클래스만 조회하는 것
+            (fetch = FetchType.EAGER)//즉시로딩
     @JoinColumn(name = "TEAM_ID")//조인해야 되는 컬럼을 명시해준다.
     //이 조인컬럼은 필수
     private Team team;

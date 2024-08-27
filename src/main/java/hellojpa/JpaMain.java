@@ -402,33 +402,276 @@ public class JpaMain {
             //close로 닫아도 똑같다.
 
             //프록시 초기화 확인
-            Member member1=new Member();
-            member1.setName("member1");
-            entityManager.persist(member1);
-
-            Member member2=new Member();
-            member2.setName("member2");
-            entityManager.persist(member2);
-
-            entityManager.flush();
-            entityManager.clear();
-            Member m1=entityManager.getReference(Member.class, member1.getId());
-            System.out.println("m1 = " + m1.getClass());//proxy
+//            Member member1=new Member();
+//            member1.setName("member1");
+//            entityManager.persist(member1);
+//
+//            Member member2=new Member();
+//            member2.setName("member2");
+//            entityManager.persist(member2);
+//
+//            entityManager.flush();
+//            entityManager.clear();
+//            Member m1=entityManager.getReference(Member.class, member1.getId());
+//            System.out.println("m1 = " + m1.getClass());//proxy
 
 //            1.isLoad :프록시 인스턴스의 초기화 여부 확인
-            System.out.println("isLoad = " +entityManagerFactory.getPersistenceUnitUtil().isLoaded(m1) );
-            //이렇게 프록시 초기화를 안한 상태에서 로딩 유무를 파악 후 isLoad는 false가 나온다.
-            //호출하여 초기화하면 true가 나온다.
-//            2. getClass : 프록시 클래스 확인
-            System.out.println("m1 = " + m1.getClass());//
-//            3. 프록시 강제 초기화 m1.getName()을 통해 강제 초기화를 진행한 것인데
-            //별도 하이버네이트 별도 메소드가 존재하는데
-            Hibernate.initialize(m1);//이렇게 강제 초기화가 가능하다.
+//            System.out.println("isLoad = " +entityManagerFactory.getPersistenceUnitUtil().isLoaded(m1) );
+//            //이렇게 프록시 초기화를 안한 상태에서 로딩 유무를 파악 후 isLoad는 false가 나온다.
+//            //호출하여 초기화하면 true가 나온다.
+////            2. getClass : 프록시 클래스 확인
+//            System.out.println("m1 = " + m1.getClass());//
+////            3. 프록시 강제 초기화 m1.getName()을 통해 강제 초기화를 진행한 것인데
+//            //별도 하이버네이트 별도 메소드가 존재하는데
+//            Hibernate.initialize(m1);//이렇게 강제 초기화가 가능하다.
             //셀렉트 쿼리가 나가는 것을 볼 수 있다.
 
             //참고 JPA는 강제초기화가 없어서
             //m1.getName()이런식으로 강제 호출해야 된다.
 
+            //지연로딩
+
+//            Team team =new Team();
+//            team.setName("teamA");
+//            entityManager.persist(team);
+//
+//            Member member1=new Member();
+//            member1.setTeam(team);
+//            member1.setName("member1");
+//            entityManager.persist(member1);
+//
+//
+//
+//
+//            entityManager.flush();
+//            entityManager.clear();
+//
+//            Member m=entityManager.find(Member.class, member1.getId());
+//            System.out.println("m1 = " + m.getClass());//proxy
+//            //Lazy상태를 Team객체에 걸어놓으니 member테이블만 select하지만
+//            System.out.println("m.getTeam() = " + m.getTeam().getClass());
+//            //이렇게 Team을 Team은 m.getTeam() = class hellojpa.Team$HibernateProxy$IQL1By90
+//            //프록시 타입인 것을 알 수 있다.
+//            System.out.println("m.getTeam().getName() = " + m.getTeam().getName());
+//            //이렇게 팀을 조회하는 시점에 팀을 조회하는 쿼리가 나가는 것을 알 수 있다.
+//            System.out.println("m.getTeam() = " + m.getTeam().getClass());
+//            //이렇게 팀 이름까지 가져온다면?
+////            m.getTeam().getName() = teamA
+////            m.getTeam() = class hellojpa.Team$HibernateProxy$sn0ZBN6H
+//            //이미 프록시로 맴버에 넣었기 떄문에 가져와도 타겟만 연결되고 여전히 프록시
+//            //결국 지연세팅은 연관된 것을 프록시로 가져오는 것
+//
+//            //실무에서는 jpql을 많이 사용하는데
+//            List<Member> resultList = entityManager.createQuery("select m from Member m", Member.class)
+//                    .getResultList();
+            //jpql로 호출하면
+//            Hibernate:
+//            select
+//            m1_0.MEMBER_ID,
+//                    m1_0.INSERT_MEMBER,
+//                    m1_0.createDate,
+//                    m1_0.lastModifiedDate,
+//                    m1_0.UPDATE_MEMBER,
+//                    l1_0.LOCKER_ID,
+//                    l1_0.name,
+//                    m1_0.USERNAME,
+//                    t1_0.TEAM_ID,
+//                    t1_0.name
+//            from
+//            Member m1_0
+//            left join
+//            Locker l1_0
+//            on l1_0.LOCKER_ID=m1_0.LOCKER_ID
+//            left join
+//            Team t1_0
+//            on t1_0.TEAM_ID=m1_0.TEAM_ID
+//            where
+//            m1_0.MEMBER_ID=?
+//            m1 = class hellojpa.Member
+//            m.getTeam() = class hellojpa.Team
+//            m.getTeam().getName() = teamA
+//            m.getTeam() = class hellojpa.Team
+//            Hibernate:
+//    /* select
+//        m
+//    from
+//        Member m */ select
+//            m1_0.MEMBER_ID,
+//                    m1_0.INSERT_MEMBER,
+//                    m1_0.createDate,
+//                    m1_0.lastModifiedDate,
+//                    m1_0.UPDATE_MEMBER,
+//                    m1_0.LOCKER_ID,
+//                    m1_0.USERNAME,
+//                    m1_0.TEAM_ID
+//            from
+//            Member m1_0
+            //쿼리가 두번 나간다. em.find라는 것은 pk를 찍어서 가져오기 때문에
+            //jpa가 내부 최적화를 하지만 jpql이란 것은 sql을 그대로 sql로 번역해서
+            //맴버만 셀렉트 하는 것이고 맴버를 가져왔는데 어라라? 팀이 즉시로딩으로 되어 있으니
+            //즉시로딩은 값이 무조건 있어야 되기 떄문에 맴버 쿼리 나가고 
+            //10개만큼 팀을 가져오기 위한 쿼리가 나간다. 그 즉시
+            //쿼리가 11개가 되어버리는 것
+            //SQL :select * from Member
+            //SQL :select * from TEAM where TEAM_ID= xxx로 또 갯수만큼 이 쿼리가 나가는 것
+            //이러한 문제가 존재하기 때문에 레이지 모드로 설정해서 필요에 맞게 쿼리를 하도록 한다.
+
+
+            //EAGER 확인
+//            Team team =new Team();
+//            team.setName("teamA");
+//            entityManager.persist(team);
+//
+//            Member member1=new Member();
+//            member1.setTeam(team);
+//            member1.setName("member1");
+//            entityManager.persist(member1);
+//
+//            Team team2 =new Team();
+//            team2.setName("teamB");
+//            entityManager.persist(team2);
+//
+//            Member member2=new Member();
+//            member2.setTeam(team2);
+//            member2.setName("member1");
+//            entityManager.persist(member2);
+//
+//            entityManager.flush();
+//            entityManager.clear();
+
+//            List<Member> resultList = entityManager.createQuery("select m from Member m", Member.class)
+//                    .getResultList();
+
+//            Hibernate:
+    /* select
+        m
+    from
+//        Member m */
+//            select
+//            m1_0.MEMBER_ID,
+//                    m1_0.INSERT_MEMBER,
+//                    m1_0.createDate,
+//                    m1_0.lastModifiedDate,
+//                    m1_0.UPDATE_MEMBER,
+//                    m1_0.LOCKER_ID,
+//                    m1_0.USERNAME,
+//                    m1_0.TEAM_ID
+//            from
+//            Member m1_0
+//            Hibernate:
+//            select
+//            t1_0.TEAM_ID,
+//                    t1_0.name
+//            from
+//            Team t1_0
+//            where
+//            t1_0.TEAM_ID=?
+//            Hibernate:
+//            select
+//            t1_0.TEAM_ID,
+//                    t1_0.name
+//            from
+//            Team t1_0
+//            where
+//            t1_0.TEAM_ID=?
+        //이렇게 팀을 조회하는 쿼리가 두개가 나오는 것을 볼 수 있다.
+            //1은 최초쿼리이고 나머지 총 갯수 n개 쿼리가 나간다고 해서 N+1문제이다.
+        //Lazy로 변경하면 맴버의 쿼리가 안나간다.
+            //N+1 해결방안은 모든 연관관계를 지연로딩으로 설정하고
+//            1.fetch조인을 사용
+            //맴버만 가져오고 싶을 때는 맴버만 셀렉트 팀이 같이 필요하면 패치조인을 통해서
+            //맴버랑 팀을 같이 가져온다고 설정
+            //패치조인을 하면 한방 쿼리로 날려서 가져온다
+//     List<Member> resultList = entityManager.createQuery("select m from Member m join fetch m.team", Member.class)
+//                    .getResultList();
+           //이렇게 패치 조인으로 값을 가져온다.
+//             /* select
+//        m
+//    from
+//        Member m
+//    join
+//
+//    fetch
+//        m.team */ select
+//            m1_0.MEMBER_ID,
+//                    m1_0.INSERT_MEMBER,
+//                    m1_0.createDate,
+//                    m1_0.lastModifiedDate,
+//                    m1_0.UPDATE_MEMBER,
+//                    m1_0.LOCKER_ID,
+//                    m1_0.USERNAME,
+//                    t1_0.TEAM_ID,
+//                    t1_0.name
+//            from
+//            Member m1_0
+//            join
+//            Team t1_0
+//            on t1_0.TEAM_ID=m1_0.TEAM_ID
+            //이렇게 한방 조인을 해버린다. 루프로 값을 돌려도 값이 다 채워진다.
+//            2.Entity Graph라고 어노테이션이 존재하고
+
+//            3. 배치 사이즈라고 해서 또 다르게 푸는 방법이 존재
+            //이건 1+1으로 쿼리가 나가도록 할 수 있는 것
+            //하지만 대부분 패치 조인으로 이러한 문제를 해결하게 된다.
+            //이때 xToOne은 전부 EAGER로딩이라 LAZY를 걸어야 한다.
+            //위에 XtoMany면 뒤에 Lazy로딩로 되어 있어서
+
+            //Carscade활용
+
+            Child child1 =new Child();
+            Child child2 =new Child();
+
+            Parent parent=new Parent();
+            parent.addChild(child1);
+            parent.addChild(child2);
+            //이때 persist를 3번 호출해야 되는데
+            entityManager.persist(parent);
+//            entityManager.persist(child1);
+//            entityManager.persist(child2);
+            //위와 같이 CARSCADE가 없으면 이렇게 3번 넣어야 한다.
+//            이때 parent가 persist될 때 child가 persist가 됬으면 좋겠다
+//            라는 생각을 하는데 이걸 해결해주는 게 cascade이다.
+            Hibernate:
+    /* insert for
+        hellojpa.Parent */
+//            insert
+//                    into
+//            Parent (name, id)
+//            values
+//                    (?, ?)
+//            Hibernate:
+//    /* insert for
+//        hellojpa.Child */
+//            insert
+//                    into
+//            Child (name, parent_id, id)
+//            values
+//                    (?, ?, ?)
+//            Hibernate:
+//    /* insert for
+//        hellojpa.Child */
+//
+//                    into
+//            Child (name, parent_id, id)
+//            values
+//                    (?, ?, ?)
+        //이렇게 자동으로 persist가 된다.
+//            매핑과는 아무런 관련이 없다.
+//            엔티티를 영속화할 때 함께 영속화하는 편리함을 제공할 뿐!
+            //고아 객체 삭제
+            entityManager.flush();
+            entityManager.clear();
+            Parent findParent = entityManager.find(Parent.class, parent.getId());
+            findParent.getChildList().remove(0);
+            //만약 이렇게 0번째 자식을 지운다면?
+            //연관관계가 끊어졌기 때문에 자동으로
+            Hibernate:
+//            /* delete for hellojpa.Child */delete
+//                    from
+//            Child
+//                    where
+//            id=?
+            //위와 같이 0번 리스트에 연결되어 있던 자식 객체 엔티티가 삭제된 것을 알 수 있다.
             transaction.commit();
         }catch (Exception e){
             transaction.rollback();
