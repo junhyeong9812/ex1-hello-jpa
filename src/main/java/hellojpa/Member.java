@@ -9,8 +9,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+
+
+
 @Entity
-public class Member extends BaseEntity{
+public class Member
+//        extends BaseEntity
+{
     @Id @GeneratedValue
     @Column(name = "MEMBER_ID")
     private Long id;
@@ -60,6 +65,61 @@ public class Member extends BaseEntity{
 //    private LocalDateTime createDate;
 //    private String lastmodifiedBy;
 //    private LocalDateTime lastModifiedDate;
+
+    //임베디드 타입
+    //기간 period
+//    private LocalDateTime startDate;
+//    private LocalDateTime endDate;
+    @Embedded
+    private Period workPeriod;
+    //주소
+//    private String city;
+//    private String street;
+//    private String zipcode;
+    @Embedded //able과 둘중 하나만 넣어도 생략 가능
+    private Address homeAddress;
+
+    @Embedded //able과 둘중 하나만 넣어도 생략 가능
+    @AttributeOverrides({
+            @AttributeOverride(name = "city",column = @Column(name="work_city")),
+            @AttributeOverride(name = "street",column = @Column(name="work_street")),
+            @AttributeOverride(name = "zipcode",column = @Column(name="work_zipcode")),
+    })
+    private Address workAddress;
+    //이렇게  같은 타입을 가진 두개의 엔티티가 중복이 된다면?
+    //에러가 난다.Repeated column이 에러가 난다.
+    //그래서 이때 @AttributeOverride를 통해서 이러한 문제를 해결 할 수 있다.
+    public Locker getLocker() {
+        return locker;
+    }
+
+    public void setLocker(Locker locker) {
+        this.locker = locker;
+    }
+
+    public List<MemberProduct> getMemberProducts() {
+        return memberProducts;
+    }
+
+    public void setMemberProducts(List<MemberProduct> memberProducts) {
+        this.memberProducts = memberProducts;
+    }
+
+    public Period getWorkPeriod() {
+        return workPeriod;
+    }
+
+    public void setWorkPeriod(Period workPeriod) {
+        this.workPeriod = workPeriod;
+    }
+
+    public Address getHomeAddress() {
+        return homeAddress;
+    }
+
+    public void setHomeAddress(Address homeAddress) {
+        this.homeAddress = homeAddress;
+    }
 
     public void setId(Long id) {
         this.id = id;

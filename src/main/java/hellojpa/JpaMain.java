@@ -618,20 +618,20 @@ public class JpaMain {
 
             //Carscade활용
 
-            Child child1 =new Child();
-            Child child2 =new Child();
-
-            Parent parent=new Parent();
-            parent.addChild(child1);
-            parent.addChild(child2);
-            //이때 persist를 3번 호출해야 되는데
-            entityManager.persist(parent);
+//            Child child1 =new Child();
+//            Child child2 =new Child();
+//
+//            Parent parent=new Parent();
+//            parent.addChild(child1);
+//            parent.addChild(child2);
+//            //이때 persist를 3번 호출해야 되는데
+//            entityManager.persist(parent);
 //            entityManager.persist(child1);
 //            entityManager.persist(child2);
             //위와 같이 CARSCADE가 없으면 이렇게 3번 넣어야 한다.
 //            이때 parent가 persist될 때 child가 persist가 됬으면 좋겠다
 //            라는 생각을 하는데 이걸 해결해주는 게 cascade이다.
-            Hibernate:
+//            Hibernate:
     /* insert for
         hellojpa.Parent */
 //            insert
@@ -659,19 +659,27 @@ public class JpaMain {
 //            매핑과는 아무런 관련이 없다.
 //            엔티티를 영속화할 때 함께 영속화하는 편리함을 제공할 뿐!
             //고아 객체 삭제
-            entityManager.flush();
-            entityManager.clear();
-            Parent findParent = entityManager.find(Parent.class, parent.getId());
-            findParent.getChildList().remove(0);
+//            entityManager.flush();
+//            entityManager.clear();
+//            Parent findParent = entityManager.find(Parent.class, parent.getId());
+//            findParent.getChildList().remove(0);
             //만약 이렇게 0번째 자식을 지운다면?
             //연관관계가 끊어졌기 때문에 자동으로
-            Hibernate:
+//            Hibernate:
 //            /* delete for hellojpa.Child */delete
 //                    from
 //            Child
 //                    where
 //            id=?
             //위와 같이 0번 리스트에 연결되어 있던 자식 객체 엔티티가 삭제된 것을 알 수 있다.
+
+            //임베디드
+            Member member =new Member();
+            member.setName("Hello");
+            member.setHomeAddress(new Address("city","street","zipcode"));
+            member.setWorkPeriod(new Period());
+            entityManager.persist(member);
+
             transaction.commit();
         }catch (Exception e){
             transaction.rollback();
