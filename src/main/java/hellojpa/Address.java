@@ -2,6 +2,8 @@ package hellojpa;
 
 import jakarta.persistence.Embeddable;
 
+import java.util.Objects;
+
 @Embeddable//값 타입을 정의하는 곳에서 값타입이라 알려줘야 한다.
 public class Address {
     private String city;
@@ -11,6 +13,19 @@ public class Address {
 //    private Member member;
 
     public Address() {
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Address address = (Address) o;
+        return Objects.equals(city, address.city) && Objects.equals(street, address.street) && Objects.equals(zipcode, address.zipcode);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(city, street, zipcode);
     }
 
     public Address(String city, String street, String zipcode) {
@@ -23,23 +38,23 @@ public class Address {
         return city;
     }
 
-    public void setCity(String city) {
-        this.city = city;
-    }
+//    public void setCity(String city) {
+//        this.city = city;
+//    }
 
     public String getStreet() {
         return street;
     }
 
-    public void setStreet(String street) {
-        this.street = street;
-    }
+//    public void setStreet(String street) {
+//        this.street = street;
+//    }
 
     public String getZipcode() {
         return zipcode;
     }
 
-    public void setZipcode(String zipcode) {
-        this.zipcode = zipcode;
-    }
+//    public void setZipcode(String zipcode) {
+//        this.zipcode = zipcode;
+//    }
 }

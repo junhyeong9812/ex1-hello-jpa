@@ -5,11 +5,7 @@ import jakarta.persistence.*;
 import java.sql.Clob;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-
+import java.util.*;
 
 
 @Entity
@@ -78,17 +74,64 @@ public class Member
 //    private String zipcode;
     @Embedded //able과 둘중 하나만 넣어도 생략 가능
     private Address homeAddress;
-
-    @Embedded //able과 둘중 하나만 넣어도 생략 가능
-    @AttributeOverrides({
-            @AttributeOverride(name = "city",column = @Column(name="work_city")),
-            @AttributeOverride(name = "street",column = @Column(name="work_street")),
-            @AttributeOverride(name = "zipcode",column = @Column(name="work_zipcode")),
-    })
-    private Address workAddress;
+//
+//    @Embedded //able과 둘중 하나만 넣어도 생략 가능
+//    @AttributeOverrides({
+//            @AttributeOverride(name = "city",column = @Column(name="work_city")),
+//            @AttributeOverride(name = "street",column = @Column(name="work_street")),
+//            @AttributeOverride(name = "zipcode",column = @Column(name="work_zipcode")),
+//    })
+//    private Address workAddress;
     //이렇게  같은 타입을 가진 두개의 엔티티가 중복이 된다면?
     //에러가 난다.Repeated column이 에러가 난다.
     //그래서 이때 @AttributeOverride를 통해서 이러한 문제를 해결 할 수 있다.
+
+    //값 타입 컬렉션
+    @ElementCollection
+    @CollectionTable(name = "Favorite_FOODS",
+            joinColumns = @JoinColumn(name="MEMBER_ID"))
+    @Column(name = "FOOD_NAME")//이렇게 하면 테이블 생성할 때 단일 값일 경우 컬럼명을 생성 가능
+    private Set<String> favoriteFoods= new HashSet<>();
+
+//    @ElementCollection
+//    @CollectionTable(name = "ADDRESS",
+//            joinColumns = @JoinColumn(name="MEMBER_ID")
+//            //이렇게 매핑 조인할 컬럼명 지정이 필요
+//    )
+//    //Address속성에 맞춰서 나올텐데 이상하면 attribute Overriding 하면 된다.
+//    private List<Address> addresseHistory=new ArrayList<>();
+
+    @OneToMany(cascade = CascadeType.ALL,orphanRemoval = true)
+    @JoinColumn(name = "MEMBER_ID")
+    private List<AddressEntity> addresseHistory = new ArrayList<>();
+    //이런 특별한 케이스는 케스케이드 all 설정이나 일대다 단반향 매핑으로 건다.
+    //이렇게 하면 값타입보다 활용도가 많아진다.
+
+
+    public List<AddressEntity> getAddresseHistory() {
+        return addresseHistory;
+    }
+
+    public void setAddresseHistory(List<AddressEntity> addresseHistory) {
+        this.addresseHistory = addresseHistory;
+    }
+
+    public Set<String> getFavoriteFoods() {
+        return favoriteFoods;
+    }
+
+    public void setFavoriteFoods(Set<String> favoriteFoods) {
+        this.favoriteFoods = favoriteFoods;
+    }
+
+//    public List<Address> getAddresseHistory() {
+//        return addresseHistory;
+//    }
+//
+//    public void setAddresseHistory(List<Address> addresseHistory) {
+//        this.addresseHistory = addresseHistory;
+//    }
+
     public Locker getLocker() {
         return locker;
     }

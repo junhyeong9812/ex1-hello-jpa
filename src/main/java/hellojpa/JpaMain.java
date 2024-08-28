@@ -5,6 +5,8 @@ import org.hibernate.Hibernate;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
+
 //연관관계 매핑
 public class JpaMain {
     //psvm을 통해 바로 생성 가능
@@ -674,11 +676,290 @@ public class JpaMain {
             //위와 같이 0번 리스트에 연결되어 있던 자식 객체 엔티티가 삭제된 것을 알 수 있다.
 
             //임베디드
-            Member member =new Member();
-            member.setName("Hello");
-            member.setHomeAddress(new Address("city","street","zipcode"));
-            member.setWorkPeriod(new Period());
+//            Member member =new Member();
+//            member.setName("Hello");
+//            member.setHomeAddress(new Address("city","street","zipcode"));
+//            member.setWorkPeriod(new Period());
+//            entityManager.persist(member);
+
+            //임베디드 값타입 공유
+            //공유 임베디드 타입
+//            Address address = new Address("city", "street", "zipcode");
+//
+//            Member member1 =new Member();
+//            member1.setName("Hello1");
+//            member1.setHomeAddress(address);
+//            member1.setWorkPeriod(new Period());
+//            entityManager.persist(member1);
+//            //만약 member1의 주소값을 변경하고 싶으면?
+//            Address NewAddress = new Address("NewCity", address.getStreet(), address.getZipcode());
+//            //이렇게 값을 복사하면 된다.
+//            member1.setHomeAddress(NewAddress);
+            //이렇게 값을 변경해야 된다.
+
+//            Member member2 =new Member();
+//            member2.setName("Hello2");
+////            member2.setHomeAddress(address);
+//            Address copyAddress = new Address(address.getCity(), address.getStreet(), address.getZipcode());
+//            member2.setHomeAddress(copyAddress);
+//            member2.setWorkPeriod(new Period());
+//            entityManager.persist(member2);
+
+            //현재 이렇게 address를 같은 어드레스를 사용할 때
+            //서로 같은 주소를 가지고 있을텐데
+
+//            member1.getHomeAddress().setCity("newCity");
+            //이때 member1의 주소만 변경하고 싶어서 변경했는데 이때
+//            Hibernate:
+//    /* update
+//        for hellojpa.Member */update Member
+//            set
+//            city=?,
+//            street=?,
+//            zipcode=?,
+//            LOCKER_ID=?,
+//            USERNAME=?,
+//            TEAM_ID=?,
+//            work_city=?,
+//            work_street=?,
+//            work_zipcode=?,
+//            endDate=?,
+//            startDate=?
+//            where
+//            MEMBER_ID=?
+//            Hibernate:
+//    /* update
+//        for hellojpa.Member */update Member
+//            set
+//            city=?,
+//            street=?,
+//            zipcode=?,
+//            LOCKER_ID=?,
+//            USERNAME=?,
+//            TEAM_ID=?,
+//            work_city=?,
+//            work_street=?,
+//            work_zipcode=?,
+//            endDate=?,
+//            startDate=?
+//            where
+//            MEMBER_ID=?
+            //이렇게 업데이트 쿼리가 두번 나간다.
+            //??왜일까??
+
+
+            //값 타입 컬렉션
+            Member member=new Member();
+            member.setName("member1");
+            member.setHomeAddress(
+                    new Address("homeCity","street","10000"));
+
+            member.getFavoriteFoods().add("치킨");
+            member.getFavoriteFoods().add("족발");
+            member.getFavoriteFoods().add("피자");
+
+            //AddressEntity활용
+
+            member.getAddresseHistory().
+                    add(new AddressEntity("old1","street","10000"));
+            member.getAddresseHistory().
+                    add(new AddressEntity("old2","street","10000"));
             entityManager.persist(member);
+
+//            member.getAddresseHistory().
+//                    add(new Address("old1","street","10000"));
+//            member.getAddresseHistory().
+//                    add(new Address("old2","street","10000"));
+//            entityManager.persist(member);
+//            /* insert for
+//        hellojpa.Member */insert
+//                    into
+//            Member (city, street, zipcode, LOCKER_ID, USERNAME, TEAM_ID, endDate, startDate, MEMBER_ID)
+//            values
+//                    (?, ?, ?, ?, ?, ?, ?, ?, ?)
+//            Hibernate:
+//    /* insert for
+//        hellojpa.Member.addresseHistory */insert
+//                    into
+//            ADDRESS (MEMBER_ID, city, street, zipcode)
+//            values
+//                    (?, ?, ?, ?)
+//            Hibernate:
+//    /* insert for
+//        hellojpa.Member.addresseHistory */insert
+//                    into
+//            ADDRESS (MEMBER_ID, city, street, zipcode)
+//            values
+//                    (?, ?, ?, ?)
+//            Hibernate:
+//    /* insert for
+//        hellojpa.Member.favoriteFoods */insert
+//                    into
+//            Favorite_FOODS (MEMBER_ID, FOOD_NAME)
+//            values
+//                    (?, ?)
+//            Hibernate:
+//    /* insert for
+//        hellojpa.Member.favoriteFoods */insert
+//                    into
+//            Favorite_FOODS (MEMBER_ID, FOOD_NAME)
+//            values
+//                    (?, ?)
+//            Hibernate:
+//    /* insert for
+//        hellojpa.Member.favoriteFoods */insert
+//                    into
+//            Favorite_FOODS (MEMBER_ID, FOOD_NAME)
+//            values
+//                    (?, ?)
+
+            //값 타입 조회
+            entityManager.flush();
+            entityManager.clear();
+            System.out.println("-----------Start---------------");
+            Member findMember = entityManager.find(Member.class, member.getId());
+//            -----------Start---------------
+//                    Hibernate:
+//            select
+//            m1_0.MEMBER_ID,
+//                    m1_0.city,
+//                    m1_0.street,
+//                    m1_0.zipcode,
+//                    l1_0.LOCKER_ID,
+//                    l1_0.name,
+//                    m1_0.USERNAME,
+//                    t1_0.TEAM_ID,
+//                    t1_0.name,
+//                    m1_0.endDate,
+//                    m1_0.startDate
+//            from
+//            Member m1_0
+//            left join
+//            Locker l1_0
+//            on l1_0.LOCKER_ID=m1_0.LOCKER_ID
+//            left join
+//            Team t1_0
+//            on t1_0.TEAM_ID=m1_0.TEAM_ID
+//            where
+//            m1_0.MEMBER_ID=?
+            //member정보만 가져오는 것을 볼 수 있다.
+            //이를 통해 컬렉션인 값타입 테이블은 지연로딩이 된다.
+            System.out.println(" ---------지연로딩---------- " );
+//            List<Address> addresseHistory = findMember.getAddresseHistory();
+//            for(Address address :addresseHistory){
+//                System.out.println("address.getCity() = " + address.getCity());
+//            }
+            Set<String> favoriteFoods = findMember.getFavoriteFoods();
+            for (String favoriteFood:favoriteFoods){
+                System.out.println("favoriteFood = " + favoriteFood);
+            }
+//            ---------지연로딩----------
+//            Hibernate:
+//            select
+//            ah1_0.MEMBER_ID,
+//                    ah1_0.city,
+//                    ah1_0.street,
+//                    ah1_0.zipcode
+//            from
+//            ADDRESS ah1_0
+//            where
+//            ah1_0.MEMBER_ID=?
+//            address.getCity() = old1
+//            address.getCity() = old2
+//            Hibernate:
+//            select
+//            ff1_0.MEMBER_ID,
+//                    ff1_0.FOOD_NAME
+//            from
+//            Favorite_FOODS ff1_0
+//            where
+//            ff1_0.MEMBER_ID=?
+//            favoriteFood = 족발
+//            favoriteFood = 치킨
+//            favoriteFood = 피자
+            //지연로딩!
+
+            //값타입 컬렉션 수정
+            //homeCity->newCity변경 시 새롭게 생성해서 생성해서 get으로
+            //새롭게 넣어주는 게 맞다.
+//            findMember.getHomeAddress().setCity();
+            //이렇게 변경하면 사이드 이팩트가 발생할 수 있다.
+            Address ad = findMember.getHomeAddress();
+            findMember.setHomeAddress(
+                    new Address("newCity",ad.getStreet(),ad.getZipcode()));
+            //이렇게 통으로 인스턴스를 교체하는 게 맞다.
+            /* update
+//        for hellojpa.Member */
+//            update Member
+//            set
+//            city=?,
+//            street=?,
+//            zipcode=?,
+//            LOCKER_ID=?,
+//            USERNAME=?,
+//            TEAM_ID=?,
+//            endDate=?,
+//            startDate=?
+//            where
+//            MEMBER_ID=?
+            //만약 값타입 컬렉션을 변경한다면?
+            //치킨->한식으로 변경한다면 단순String이기 때문에
+            findMember.getFavoriteFoods().remove("치킨");
+            //단순 삭제 후
+            findMember.getFavoriteFoods().add("한식");
+            //값타입이기 때문에 기존껀 삭제하고 추가하도록 구현하는 게 맞다.
+//            /* delete for hellojpa.Member.favoriteFoods */delete
+//                    from
+//            Favorite_FOODS
+//                    where
+//            MEMBER_ID=?
+//            and FOOD_NAME=?
+//            Hibernate:
+//    /* insert for
+//        hellojpa.Member.favoriteFoods */insert
+//                    into
+//            Favorite_FOODS (MEMBER_ID, FOOD_NAME)
+//            values
+//                    (?, ?)
+            //컬렉션의 값만 변경해도 실제 데이터베이스에 쿼리가 날라가면서 어떤 부분이 변경됬는 지
+            //알려준다.
+            
+            //값 타입 컬렉션은 맴버의 의존관계를 맡긴다는 게 중요
+
+            //그럼 오브젝트 타입이라면?
+            //old1->변경한다면  오브젝트 타입으로 삭제해야 된다.
+            //기본적으로 컬렉션은 대상을 찾을 때 equals를 찾는다.
+//            findMember.getAddresseHistory().
+//                    remove(new Address("old1","street","10000"));
+            //이때 equals랑 hashcode를 사용해서 값을 찾아서 매칭시키고 삭제하기 때문에
+            //구현이 안되어 있으면 망한다는/ 것
+            //이떄를 조심
+//            findMember.getAddresseHistory().
+//                    add(new Address("newCity1","street","10000"));
+//            Hibernate:
+//            /* one-shot delete for hellojpa.Member.addresseHistory */delete
+//                    from
+//            ADDRESS
+//                    where
+//            MEMBER_ID=?
+//            Hibernate:
+//    /* insert for
+//        hellojpa.Member.addresseHistory */insert
+//                    into
+//            ADDRESS (MEMBER_ID, city, street, zipcode)
+//            values
+//                    (?, ?, ?, ?)
+            //    /* insert for
+//        hellojpa.Member.addresseHistory */insert
+//                    into
+//            ADDRESS (MEMBER_ID, city, street, zipcode)
+//            values
+//                    (?, ?, ?, ?)
+        //이렇게 값이 삭제되고 추가된 것을 알 수 있다.
+        //이떄 지금 히스토리를 전부 삭제하고 이후 다시 인서트를 두번하는데
+            //테이블의 데이터를 완전히 교체해버린 것
+
+
 
             transaction.commit();
         }catch (Exception e){
